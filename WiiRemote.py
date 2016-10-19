@@ -40,83 +40,7 @@ class WiiRemote:
         self.wm.rumble = True
         time.sleep(.2)
         self.wm.rumble = False
-
-    def _map2mcpi(self, freq):
-
-        import pyautogui as pag
-
-        self.wm.rpt_mode = cwiid.RPT_BTN | cwiid.RPT_ACC | cwiid.RPT_NUNCHUK
-        
-        while self.active:
-            buttons = self.wm.state['buttons']
-            nunAcc = self.wm.state['nunchuk']['acc']
-            nunButtons = self.wm.state['nunchuk']['buttons']
-            nunStick = self.wm.state['nunchuk']['stick']
-            if buttons & cwiid.BTN_UP:
-                pag.keyDown('w')
-            else:
-                pag.keyUp('w')
-            if buttons & cwiid.BTN_DOWN:
-                pag.keyDown('s')                
-            else:
-                pag.keyUp('s')
-
-            if buttons & cwiid.BTN_LEFT:
-                pag.keyDown('a')                
-            else:
-                pag.keyUp('a')
-            if buttons & cwiid.BTN_RIGHT:
-                pag.keyDown('d')                
-            else:
-                pag.keyUp('d')
-            if nunButtons & cwiid.NUNCHUK_BTN_C:
-                pag.keyDown('space')
-            else:
-                pag.keyUp('space')
-##	    if buttons & cwiid.BTN_1:
-##                slef.btn1 = True
-##            else:
-##                self.btn1 = False
-##            if buttons & cwiid.BTN_2:
-##                self.btn2 = True
-##            else:
-##                self.btn2 = False
-##
-##            if buttons & cwiid.BTN_A:
-##		self.btnA = True
-##            else:
-##                self.btnA = False
-##            if buttons & cwiid.BTN_B:
-##		self.btnB = True
-##            else:
-##                self.btnB = False
-##            if buttons & cwiid.BTN_UP:
-##                self.btnUp = True
-##            else:
-##                self.btnUp = False
-##            if buttons & cwiid.BTN_DOWN:
-##                self.btnDown = True
-##            else:
-##                self.btnDown = False
-##
-##            if buttons & cwiid.BTN_LEFT:
-##		self.btnLeft = True
-##            else:
-##                self.btnLeft = False
-##            if buttons & cwiid.BTN_RIGHT:
-##		self.btnRight = True
-##            else:
-##                self.btnRight = False
-##            if nunButtons & cwiid.NUNCHUK_BTN_C:
-##                self.btnC = True
-##            else:
-##                self.btnC = False
-##	    if nunButtons & cwiid.NUNCHUK_BTN_Z:
-##                self.btnZ = True
-##	    else:
-##                self.btnZ = False
-##            time.sleep(1/freq)
-            
+         
     def _robotRemote(self, freq):
 
         self.wm.rpt_mode = cwiid.RPT_BTN | cwiid.RPT_ACC | cwiid.RPT_NUNCHUK
@@ -141,10 +65,6 @@ class WiiRemote:
         time.sleep(.2)
         self.wm.rumble = False
         self.wm.led = 0
-
-    def map2mcpi(self, freq):
-        thread1 = threading.Thread(target = self._map2mcpi, args = [freq])
-        thread1.start()
 
     def robotRemote(self, freq):
         thread1 = threading.Thread(target = self._robotRemote, args = [freq])
