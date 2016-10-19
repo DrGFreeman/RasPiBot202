@@ -16,12 +16,6 @@ irDL = rpb202.sensors.irDLeft
 irDR = rpb202.sensors.irDRight
 
 try:
-##    rpb202.forward(fwdSpeed)
-##    sleep(3)
-##    rpb202.turn(rotSpeed)
-##    sleep(oneTurn / 2)
-##    rpb202.forward(fwdSpeed)
-##    sleep(3)
 
 # WiiRemote - Constantes
 
