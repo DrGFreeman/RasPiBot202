@@ -61,12 +61,8 @@ class ADistSens:
     def getObstDist(self):
         a = self.analog
         if self.cal == 1:
-            if a > 40 and a < 200:
-                dist = 1.094E-2 * a**2 - 7.865 * a + 1699
-            elif a >= 200 and a < 415:
-                dist = 4.822E-3 * a**2 - 4.732 * a + 1327
-            elif a >= 415 and a < 900:
-                dist = -5.345E-7 * a**3 + 1.55E-3 * a**2 - 1.59 * a + 615
+            if a > 40 and a < 900:
+                dist = -2.037E-12 * a**5 + 1.167E-8 * a**4 - 2.251E-5 * a**3 + 2.023E-2 * a**2 - 9.005 * a + 1.734E3
             else:
                 dist = -1
         return dist
