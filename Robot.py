@@ -140,5 +140,8 @@ class Robot:
     def turn(self, rotSpeed):
         self.motors.turn(rotSpeed)
 
+    def move(self, speed, rotSpeed):
+        self.motors.speed(speed - rotSpeed, speed + rotSpeed) 
+
     def stop(self):
         self.motors.stop()

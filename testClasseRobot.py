@@ -92,11 +92,13 @@ try:
 
         fwd = fwd * speedCorr
         turn = turn + turnCorr
+        if fwd < 0:
+            turn = -turn
 
 ##        print fwd, turn
 
-        
-        rpb202.motors.speed(fwd - turn, fwd + turn)
+        rpb202.move(fwd, turn)
+##        rpb202.motors.speed(fwd - turn, fwd + turn)
 
         dt = time.time() - t0
         if dt < tStep:
