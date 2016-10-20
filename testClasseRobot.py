@@ -54,7 +54,8 @@ try:
         # Read sensors
         dL = irDL.hasObst()
         dR = irDR.hasObst()
-        if irAL.hasObst(600):
+        if irAL.hasObst(0, 600):
+            print "IRL"
             aL = irAL.getObstDist()
             if aL < turnCorrRange:
                 turnCorr += -turnCorrGain * (turnCorrRange - aL) / turnCorrRange
@@ -62,7 +63,8 @@ try:
                 speedCorr -= -speedCorrGain * (speedCorrRange - aL) / speedCorrRange
         else:
             aL = False
-        if irAR.hasObst(600):
+        if irAR.hasObst(0, 600):
+            print "IRR"
             aR = irAR.getObstDist()
             if aR < turnCorrRange:
                 turnCorr += turnCorrGain * (turnCorrRange - aR) / turnCorrRange

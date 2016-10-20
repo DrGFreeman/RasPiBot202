@@ -30,46 +30,59 @@ class Motors:
         self.aStar.motors(0, 0)
 
 
-# Sensor classes    
+# Sensor classes
 
-class Sensors:
+class SensCalPoly: # Polynomial calibration curve class
 
-    def __init__(self, aStar):
-        self.aStar = aStar
-        self.analog = aStar.read_analog()
-        self.irALeft = ADistSens(self.analog, 2, 1)
-        self.irARight = ADistSens(self.analog, 3, 1)
-        self.irDLeft = DDistSens(self.analog, 0)
-        self.irDRight = DDistSens(self.analog, 4)
+    def __init__(self, id, signalMin, signalMax, *args):
+        self.id = id
+        self.coeffs = []
+        for arg in args:
+            self.coeffs.append(arg)
+        self.signalMin = signalMin
+        self.signalMax = signalMax
 
-    def read(self):
-        self.analog = self.aStar.read_analog()
-        self.irALeft.analog = self.analog[self.irALeft.aPin]
-        self.irARight.analog = self.analog[self.irARight.aPin]
-        self.irDLeft.analog = self.analog[self.irDLeft.aPin]
-        self.irDRight.analog = self.analog[self.irDRight.aPin]
-        
+    def setCoeffs(self, *args):
+        self.coeffs = []
+        for arg in args:
+            self.coeffs.append(arg)
+
+    def setId(self, id):
+        self.id = id
+
+    def getId(self):
+        return self.id
+
+    def applyCal(self, signal):
+        if self.signalMin <= signal and signal <= self.signalMax:
+            calSignal = 0
+            degree = 0
+            for coeff in self.coeffs:
+                calSignal += coeff * signal ** degree
+                degree += 1
+            return calSignal
+        else:
+            return -1
 
 class ADistSens:
 
-    def __init__(self, analog, aPin, cal):
+    def __init__(self, analog, aPin, calObj):
         self.analog = analog[aPin]
         self.aPin = aPin
         self.type = 'IRAnalog'
-        self.cal = cal
+        self.cal = calObj
+
+    def setCal(self, calObj):
+        self.cal = calObj
 
     def getObstDist(self):
-        a = self.analog
-        if self.cal == 1:
-            if a > 40 and a < 900:
-                dist = -2.037E-12 * a**5 + 1.167E-8 * a**4 - 2.251E-5 * a**3 + 2.023E-2 * a**2 - 9.005 * a + 1.734E3
-            else:
-                dist = -1
-        return dist
+        return self.cal.applyCal(self.analog)
+##        if a > 40 and a < 900:
+##            dist = -2.037E-12 * a**5 + 1.167E-8 * a**4 - 2.251E-5 * a**3 + 2.023E-2 * a**2 - 9.005 * a + 1.734E3
 
-    def hasObst(self, distMax):
+    def hasObst(self, distMin, distMax):
         obstDist = self.getObstDist()
-        if obstDist != -1 and obstDist <= distMax:
+        if obstDist != -1 and distMin <= obstDist and obstDist <= distMax:
             return True
         else:
             return False
@@ -86,6 +99,24 @@ class DDistSens:
             return True
         else:
             return False
+
+class Sensors: # Collection of sensors installed on the robot
+
+    def __init__(self, aStar):
+        self.aStar = aStar
+        self.analog = aStar.read_analog()
+        self.calIR = SensCalPoly('IR', 40, 900, 1.734E3, -9.005E0, 2.023E-2, -2.251E-5, 1.167E-8, -2.037E-12)
+        self.irALeft = ADistSens(self.analog, 2, self.calIR)
+        self.irARight = ADistSens(self.analog, 3, self.calIR)
+        self.irDLeft = DDistSens(self.analog, 0)
+        self.irDRight = DDistSens(self.analog, 4)
+
+    def read(self):
+        self.analog = self.aStar.read_analog()
+        self.irALeft.analog = self.analog[self.irALeft.aPin]
+        self.irARight.analog = self.analog[self.irARight.aPin]
+        self.irDLeft.analog = self.analog[self.irDLeft.aPin]
+        self.irDRight.analog = self.analog[self.irDRight.aPin]
         
 
 # Class Encoders
@@ -98,10 +129,6 @@ class Robot:
         self.aStar = AStar()
         self.motors = Motors(self.aStar)
         self.sensors = Sensors(self.aStar)
-##        self.irALeft = aDistSens(self.analog, 2, 1)
-##        self.irARight = aDistSens(self.analog, 3, 1)
-##        self.irDLeft = dDistSens(self.analog, 0)
-##        self.irDRight = dDistSens(self.analog, 4)
 
     def readAStar(self):
         self.sensors.read()
