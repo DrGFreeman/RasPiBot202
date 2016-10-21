@@ -1,19 +1,16 @@
 import time
-
-from Robot import Robot
+import robotBuilder
 from WiiRemote import WiiRemote
 
+##  Build Robot from robotBuilder (edit robotBuilder to customize robot)
+rpb202 = robotBuilder.build()
 
-fwdSpeed = .6
-rotSpeed = .3
-oneTurn = 1.543 * .5 / rotSpeed
-
-
-rpb202 = Robot()
-irAL = rpb202.sensors.irALeft
-irAR = rpb202.sensors.irARight
-irDL = rpb202.sensors.irDLeft
-irDR = rpb202.sensors.irDRight
+##  Create direct pointers to robot sensors
+irDL = rpb202.sensors[0]
+irAL = rpb202.sensors[1]
+snrCtr = rpb202.sensors[2]
+irAR = rpb202.sensors[3]
+irDR = rpb202.sensors[4]
 
 try:
 
@@ -46,7 +43,6 @@ try:
 
         # Read aStar (sensors, buttons, etc.)
         rpb202.readAStar()
-        print(rpb202.sensors.analog[5])
 
         # Set turn correction and speed correction off
         turnCorr = 0
@@ -55,22 +51,26 @@ try:
         # Read sensors
         dL = irDL.hasObst()
         dR = irDR.hasObst()
+
         if irAL.hasObst(0, 600):
             aL = irAL.getObstDist()
             if aL < turnCorrRange:
                 turnCorr += -turnCorrGain * (turnCorrRange - aL) / turnCorrRange
             if aL < speedCorrRange:
-                speedCorr -= -speedCorrGain * (speedCorrRange - aL) / speedCorrRange
-        else:
-            aL = False
+                speedCorr -= speedCorrGain * (speedCorrRange - aL) / speedCorrRange
+
         if irAR.hasObst(0, 600):
             aR = irAR.getObstDist()
             if aR < turnCorrRange:
                 turnCorr += turnCorrGain * (turnCorrRange - aR) / turnCorrRange
-            if aL < speedCorrRange:
-                speedCorr -= -speedCorrGain * (speedCorrRange - aL) / speedCorrRange
-        else:
-            aR = False
+            if aR < speedCorrRange:
+                speedCorr -= speedCorrGain * (speedCorrRange - aR) / speedCorrRange
+
+##        if snrCtr.hasObst(0, 600):
+##            aC = snrCtr.getObstDist()
+##            if aC < speedCorrRange:
+##                speedCorr -= speedCorrGain * (speedCorrRange - aC) / speedCorrRange
+            
 
         if dL or dR:
             speedCorr = 0
@@ -92,6 +92,9 @@ try:
         fwd = fwd * speedCorr
         turn = turn + turnCorr
 
+        if fwd < 0:
+            turn = -turn
+
 ##        print fwd, turn
 
         rpb202.move(fwd, turn)
@@ -107,4 +110,4 @@ try:
 except KeyboardInterrupt:
     rpb202.stop()
     wii.release()
-    print("KeyboardInterrupt")
+    print("KeyboardInterrupt")    
