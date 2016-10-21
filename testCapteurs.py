@@ -25,7 +25,7 @@ try:
     while time.time() - t0 <= 10:
         analog = aStar.read_analog()
         time.sleep(.02)
-        dist.append(analog[2])
+        dist.append(analog[5])
         avg = numpy.mean(dist)
         stdev = numpy.std(dist)
 
@@ -33,10 +33,10 @@ try:
     print "Ecart type: ", stdev
     print "Nb pts: ", len(dist)
 
-    while True:
-        analog = aStar.read_analog()
-        print(irGauche(analog[2]))
-        time.sleep(.5)
+##    while True:
+##        analog = aStar.read_analog()
+##        print(irGauche(analog[2]))
+##        time.sleep(.5)
 
 except KeyboardInterrupt:
     print("KeyboardInterrupt")

@@ -11,7 +11,7 @@ class Motors:
     def __init__(self, aStar):
         self.aStar = aStar
         self.trimL = 1
-        self.trimR = 1. #.918 #.915
+        self.trimR = 1 #.95 #.915
         self.dirL = 1 * self.trimL
         self.dirR = 1 * self.trimR
         self.maxFwdSpeed = 400

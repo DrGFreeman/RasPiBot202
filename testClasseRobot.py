@@ -46,6 +46,7 @@ try:
 
         # Read aStar (sensors, buttons, etc.)
         rpb202.readAStar()
+        print(rpb202.sensors.analog[5])
 
         # Set turn correction and speed correction off
         turnCorr = 0
@@ -55,7 +56,6 @@ try:
         dL = irDL.hasObst()
         dR = irDR.hasObst()
         if irAL.hasObst(0, 600):
-            print "IRL"
             aL = irAL.getObstDist()
             if aL < turnCorrRange:
                 turnCorr += -turnCorrGain * (turnCorrRange - aL) / turnCorrRange
@@ -64,7 +64,6 @@ try:
         else:
             aL = False
         if irAR.hasObst(0, 600):
-            print "IRR"
             aR = irAR.getObstDist()
             if aR < turnCorrRange:
                 turnCorr += turnCorrGain * (turnCorrRange - aR) / turnCorrRange
@@ -92,8 +91,6 @@ try:
 
         fwd = fwd * speedCorr
         turn = turn + turnCorr
-        if fwd < 0:
-            turn = -turn
 
 ##        print fwd, turn
 
