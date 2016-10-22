@@ -66,6 +66,7 @@ try:
             if aR < speedCorrRange:
                 speedCorr -= speedCorrGain * (speedCorrRange - aR) / speedCorrRange
 
+        print snrCtr.getObstDist()
 ##        if snrCtr.hasObst(0, 600):
 ##            aC = snrCtr.getObstDist()
 ##            if aC < speedCorrRange:
