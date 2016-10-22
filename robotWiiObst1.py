@@ -15,14 +15,9 @@ irDR = rpb202.sensors[4]
 try:
 
 # WiiRemote - Constantes
-
-    wiiHRange = 222 - 22
-    wiiHCentre = 122
-    wiiVRange = 231 - 38
-    wiiVCentre = 134
     
     wii = WiiRemote(1)
-    wii.robotRemote(60)
+    wii.robotRemote(20)
     time.sleep(.5)
 
 
@@ -79,8 +74,8 @@ try:
 ##        print(dL, aL, aR, dR)
         
         
-        fwd = 1 * (float(wii.stickV) - wiiVCentre) / wiiVRange
-        turn = 1 * (wiiHCentre - float(wii.stickH)) / wiiHRange
+        fwd = wii.stickV
+        turn = -wii.stickH
 
         if -.05 < fwd and fwd < .05:
             fwd = 0

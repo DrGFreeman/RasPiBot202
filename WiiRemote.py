@@ -44,14 +44,23 @@ class WiiRemote:
     def _robotRemote(self, freq):
 
         self.wm.rpt_mode = cwiid.RPT_BTN | cwiid.RPT_ACC | cwiid.RPT_NUNCHUK
+
+        nunHRange = 222 - 22
+        nunHCenter = 122
+        nunVRange = 231 - 38
+        nunVCenter = 134
         
         while self.active:
             buttons = self.wm.state['buttons']
             nunAcc = self.wm.state['nunchuk']['acc']
             nunButtons = self.wm.state['nunchuk']['buttons']
             nunStick = self.wm.state['nunchuk']['stick']
+           
+            nunStickH, nunStickV = nunStick
+
+            self.stickH = (nunStickH - nunHCenter) / nunHRange
+            self.stickV = (nunStickV - nunVCenter) / nunVrange
             
-            self.stickH, self.stickV = nunStick
             if buttons & cwiid.BTN_A:
                 self.btnA = True
             else:
