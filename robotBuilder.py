@@ -1,7 +1,8 @@
 from Robot import Robot
 from Sensors import *
+import CV
 
-def build():
+def build(camera = False):
 
     ##  Create robot instance
     robot = Robot()
@@ -26,5 +27,8 @@ def build():
     robot.addSensor(snrCtr)
     robot.addSensor(irARight)
     robot.addSensor(irDRight)
+
+    if camera:
+        robot.addCamera(CV.Camera())
 
     return robot
