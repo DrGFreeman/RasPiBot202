@@ -49,8 +49,6 @@ class ObjTracker:
 
     def _trackObjByHue(self, hue, freq):
 
-##        cam = SimpleCV.Camera()
-
         self.active = True
         
         while self.active:
