@@ -10,6 +10,7 @@ class Robot:
         self.sensors = []
         self.buttons = []
         self.analog = [0, 0, 0, 0, 0, 0]
+        self.camera = []
 
     def addSensor(self, sensorObj):
         self.sensors.append(sensorObj)
@@ -17,6 +18,9 @@ class Robot:
     def readSensors(self):
         for sensor in self.sensors:
             sensor.analog = self.analog[sensor.aPin]
+
+    def addCamera(self, camera):
+        self.camera = camera
 
     def readAStar(self):
         self.buttons = self.aStar.read_buttons()
