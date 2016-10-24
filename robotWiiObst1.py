@@ -77,6 +77,8 @@ try:
         fwd = wii.stickV
         turn = -wii.stickH
 
+##        print fwd, turn
+
         if -.05 < fwd and fwd < .05:
             fwd = 0
         if -.05 < turn and turn < .05:
@@ -91,10 +93,7 @@ try:
         if fwd < 0:
             turn = -turn
 
-##        print fwd, turn
-
         rpb202.move(fwd, turn)
-##        rpb202.motors.speed(fwd - turn, fwd + turn)
 
         dt = time.time() - t0
         if dt < tStep:
