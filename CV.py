@@ -62,7 +62,7 @@ class ObjTracker:
             img = img.crop(0, topCropH, img.width, img.height - topCropH)
 
             col = SimpleCV.Color.hueToBGR(hue)
-            iBin = img.hueDistance(color = col, minsaturation = 150).binarize(40)
+            iBin = img.hueDistance(color = col, minsaturation = 120).binarize(50)
 
             blobs = iBin.findBlobs()
 
