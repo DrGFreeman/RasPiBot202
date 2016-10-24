@@ -70,14 +70,9 @@ try:
 
         if dL or dR:
             speedCorr = 0
-
-##        print(dL, aL, aR, dR)
-        
         
         fwd = wii.stickV
         turn = -wii.stickH
-
-##        print fwd, turn
 
         if -.05 < fwd and fwd < .05:
             fwd = 0
