@@ -45,10 +45,10 @@ class WiiRemote:
 
         self.wm.rpt_mode = cwiid.RPT_BTN | cwiid.RPT_ACC | cwiid.RPT_NUNCHUK
 
-        nunHRange = 222 - 22
-        nunHCenter = 122
-        nunVRange = 231 - 38
-        nunVCenter = 134
+        nunHRange = 222. - 22.
+        nunHCenter = 122.
+        nunVRange = 231. - 38.
+        nunVCenter = 134.
         
         while self.active:
             buttons = self.wm.state['buttons']
@@ -58,8 +58,8 @@ class WiiRemote:
            
             nunStickH, nunStickV = nunStick
 
-            self.stickH = (nunStickH - nunHCenter) / nunHRange
-            self.stickV = (nunStickV - nunVCenter) / nunVrange
+            self.stickH = (float(nunStickH) - nunHCenter) / nunHRange
+            self.stickV = (float(nunStickV) - nunVCenter) / nunVRange
             
             if buttons & cwiid.BTN_A:
                 self.btnA = True
@@ -82,11 +82,11 @@ class WiiRemote:
     def release(self):
         if self.active:
             thread2 = threading.Thread(target = self._release, args = [])
-            thread2.start() 
-                                                      
+            thread2.start()
+                                              
     def setLed(self, led):
-	self.wm.led = led
+        self.wm.led = led
 
     def getLed(self):
-	return self.wm.led
+        return self.wm.led
 	
