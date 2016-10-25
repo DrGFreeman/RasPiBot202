@@ -65,6 +65,10 @@ class WiiRemote:
                 self.btnA = True
             else:
                 self.btnA = False
+	    if nunButtons & cwiid.NUNCHUK_BTN_Z:
+                self.btnZ = True
+	    else:
+                self.btnZ = False
             time.sleep(1 / freq)
 
     def _release(self):
