@@ -30,16 +30,17 @@ try:
     errPrev = 0  # Previous error (for derivative calculation)
 
 ##  PID controler gains
-    Kp = .18  # Proportional term gain
+    Kp = .20  # Proportional term gain
     Ki = .04  # Integral term gain
-    Kd = .007  # Derivative term gain
+    Kd = .01  # Derivative term gain
     KpMod = 1  # Proportional gain modifier used when target is far away used to avoid losing target
 
 ##  Main loop time step
-    tStep = .02
+    fps = 20.
+    tStep = 1 / fps
 
 ##  Launch object tracker
-    objTracker.trackObjByHue(74, 50)
+    objTracker.trackObjByHue(74, fps)
 
 ##  Main loop
     end = False
