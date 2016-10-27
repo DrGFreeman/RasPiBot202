@@ -30,9 +30,9 @@ try:
     errPrev = 0  # Previous error (for derivative calculation)
 
 ##  PID controler gains
-    Kp = .20  # Proportional term gain
-    Ki = .04  # Integral term gain
-    Kd = .01  # Derivative term gain
+    Kp = .18 #.20 # Proportional term gain
+    Ki = .06 #.04 # Integral term gain
+    Kd = .012 #.007 # Derivative term gain
     KpMod = 1  # Proportional gain modifier used when target is far away used to avoid losing target
 
 ##  Main loop time step
@@ -60,7 +60,7 @@ try:
             if objTracker.getObjAreaRatio() > .28:
                 fwd = 0
 ##          Apply proportional gain correction if object is far
-            if objTracker.getObjAreaRatio() < .001:
+            if objTracker.getObjAreaRatio() < .002:
                 KpMod = .1
             else:
                 KpMod = 1

@@ -46,9 +46,9 @@ class LineTracker:
         self.nbLines = 0
         self.lines = []
         self.linesHPos = []
-        seld.linesAreaRatio = []
+        self.linesAreaRatio = []
 
-    def _trackLines(self):
+    def _trackLines(self, freq):
 
         self.active = True
 
@@ -75,7 +75,7 @@ class LineTracker:
             dl = iBin.dl()
             size = (iBin.width - contWidth, iBin.height - contWidth)
             center = (iBin.width / 2, iBin.height / 2)
-            dl.centeredRectangle(center, size, Color.BLACK, 0, True)
+            dl.centeredRectangle(center, size, SimpleCV.Color.BLACK, 0, True)
             iBox = iBin.applyLayers()
             iBoxContArea = float(iBox.area() - size[0] * size[1])
 
@@ -88,13 +88,13 @@ class LineTracker:
             ctrLeft = (0, iBox.height / 2)
             ctrRight = (iBox.width, iBox.height / 2)
 
-##          Process blobs 
+##          Process line blobs 
             if self.lines is not None:
                 self.nbLines = self.lines.count()
+##              Find line blob at bottom center        
+                self.lines = self.lines.sortDistance(btmCtr)
+                btmLine = self.lines[0]
                 if self.nbLines > 1:
-##                  Find line blob at bottom center        
-                    self.lines = self.lines.sortDistance(btmCtr)
-                    btmLine = self.lines[0]
 ##                  Remove bottom line blob from blobs
                     self.lines.__delitem__(0)
 ##                  Sort remaining line blobs from left to right
@@ -105,32 +105,36 @@ class LineTracker:
                     self.linesAreaRatio = []
                     for i in range(len(self.lines)):
                         x, y = self.lines[i].centroid()
-                        self.linesHPos.append(iBox.width / 2 - x) / (iBox.width / 2)
+                        self.linesHPos.append((iBox.width / 2 - x) / (iBox.width / 2))
                         area = self.lines[i].area()
                         self.linesAreaRatio.append(self.lines[i].area() / iBoxContArea)
 
 ##                  Re-insert bottom line blob at index 0
                     self.lines.insert(0, btmLine)
                     x, y = btmLine.centroid()
-                    self.linesHpos.insert(0, (iBox.width / 2 - x) / (iBox.width / 2))
+                    self.linesHPos.insert(0, (iBox.width / 2 - x) / (iBox.width / 2))
                     area = btmLine.area()
                     self.linesAreaRatio.insert(0, area / iBoxContArea)
 
-##              Case of a single line
-                if self.display:
+##              Display processed line blobs
+                if self.display :
                     dl = img.dl()
-                    if self.nblines == 2:
-                        topLine = self.lines[1]
-                        topLine.draw(layer = dl, color = Color.LIME, width = -1)
-                    elif self.nbLines > 2:
-                        self.lines.draw(layer = dl, color = Color.GOLD, width = -1)
-                    btmLine.draw(layer = dl, color = Color.HOTPINK, width = -1)
-                    iBox.show()
+                    if self.nbLines != 0:
+                        if self.nbLines == 2:
+                            topLine = self.lines[1]
+                            topLine.draw(layer = dl, color = SimpleCV.Color.LIME, width = -1)
+                        elif self.nbLines > 2:
+                            for line in self.lines:
+                                line.draw(layer = dl, color = SimpleCV.Color.GOLD, width = -1)
+                        btmLine.draw(layer = dl, color = SimpleCV.Color.HOTPINK, width = -1)
+                        img.applyLayers().show()
+                    else:
+                        img.show()
             else:
                 self.nbLines = 0
                 self.lines = []
                 self.linesHPos = []
-                seld.linesAreaRatio = []
+                self.linesAreaRatio = []
                 btmLine = None
                 topLine = None
 
@@ -141,6 +145,33 @@ class LineTracker:
     def trackLines(self, freq = 10):
         th = threading.Thread(target = self._trackLines, args = [freq])
         th.start()
+
+####    Change to stock actual frame x & y for blobs centroids and use get
+####    functions to return HPos in relation to frame center
+
+    def stop(self):
+        self.active = False
+        self.nbLines = 0
+        self.lines = []
+        self.linesHPos = []
+        self.linesAreaRatio = []
+
+    def getLinesHPos(self, line):
+        if len(self.linesHPos) >= line:
+            return self.linesHPos[line]
+        else:
+            return 0
+
+    def setDisplay(self, display):
+        self.display = display
+
+    def hasLines(self):
+        if self.nbLines > 0:
+            return True
+        else:
+            return False
+
+##  Add get methods for lines, linesHPos & linesAreaRatio
 
 
 class ObjTracker:
