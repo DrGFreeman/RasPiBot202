@@ -30,8 +30,8 @@ try:
     errPrev = 0  # Previous error (for derivative calculation)
 
 ##  PID controler gains
-    Kp = .10  #.18 #.20 # Proportional term gain
-    Ki = .03  #.06 #.04 # Integral term gain
+    Kp = .12  #.18 #.20 # Proportional term gain
+    Ki = .00  #.06 #.04 # Integral term gain
     Kd = .00  #.012 #.007 # Derivative term gain
 
 ##  Main loop time step
@@ -85,7 +85,7 @@ try:
         lastTurn = turn
         turn = 0
         turnCorr = 0
-        fwd = .25
+        fwd = .15
         speedCorr = 1
 
 ##      Calculate and apply delay to reach time step

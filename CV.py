@@ -116,20 +116,20 @@ class LineTracker:
                     area = btmLine.area()
                     self.linesAreaRatio.insert(0, area / iBoxContArea)
 
-##              Display processed line blobs
-                if self.display :
-                    dl = img.dl()
-                    if self.nbLines != 0:
-                        if self.nbLines == 2:
-                            topLine = self.lines[1]
-                            topLine.draw(layer = dl, color = SimpleCV.Color.LIME, width = -1)
-                        elif self.nbLines > 2:
-                            for line in self.lines:
-                                line.draw(layer = dl, color = SimpleCV.Color.GOLD, width = -1)
-                        btmLine.draw(layer = dl, color = SimpleCV.Color.HOTPINK, width = -1)
-                        img.applyLayers().show()
-                    else:
-                        img.show()
+##          Display processed line blobs
+            if self.display :
+                dl = img.dl()
+                if self.nbLines != 0:
+                    if self.nbLines == 2:
+                        topLine = self.lines[1]
+                        topLine.draw(layer = dl, color = SimpleCV.Color.LIME, width = -1)
+                    elif self.nbLines > 2:
+                        for line in self.lines:
+                            line.draw(layer = dl, color = SimpleCV.Color.GOLD, width = -1)
+                    btmLine.draw(layer = dl, color = SimpleCV.Color.HOTPINK, width = -1)
+                    img.applyLayers().show()
+                else:
+                    img.show()
             else:
                 self.nbLines = 0
                 self.lines = []
@@ -157,7 +157,7 @@ class LineTracker:
         self.linesAreaRatio = []
 
     def getLinesHPos(self, line):
-        if len(self.linesHPos) >= line:
+        if len(self.linesHPos) > line:
             return self.linesHPos[line]
         else:
             return 0
