@@ -1,5 +1,6 @@
 print "Importing libraries"
 import time
+import PID
 import robotBuilder
 
 ##  Build Robot from robotBuilder (edit robotBuilder to customize robot)
@@ -23,17 +24,14 @@ try:
     fwd = 0  # Forward speed
     speedCorr = 1  # Forward speed correction factor
 
-##  Error terms for PID controller
-    err = 0  # Horizontal position error (target rel to camera center)
-    errInt = 0  # Integral of position error
-    errDer = 0  # Derivative of position error
-    errPrev = 0  # Previous error (for derivative calculation)
 
 ##  PID controler gains
     Kp = .18 #.20 # Proportional term gain
-    Ki = .06 #.04 # Integral term gain
-    Kd = .012 #.007 # Derivative term gain
-    KpMod = 1  # Proportional gain modifier used when target is far away used to avoid losing target
+    Ki = .03 #.04 # Integral term gain
+    Kd = .007 #.007 # Derivative term gain
+
+    pid = PID.PID(Kp, Ki, Kd)
+    pid.setMedianFilter(True)
 
 ##  Main loop time step
     fps = 20.
@@ -51,34 +49,30 @@ try:
 ##      Check if object in sight
         if objTracker.hasObj():
 
-##          Calculate error terms
-            err = objTracker.getObjHPos()
-            errInt += err * tStep
-            errDer = (err - errPrev) / tStep
-            errPrev = err
+##          Calculate turn correction factor - PID controler
+            turnCorr = -pid.getOutput(0, objTracker.getObjHPos(), tStep)
+##            print turnCorr
+
 ##          Stop if object is close (based on area)
             if objTracker.getObjAreaRatio() > .28:
                 fwd = 0
-##          Apply proportional gain correction if object is far
+
+##         Reduce turn correction and speed if object is far
             if objTracker.getObjAreaRatio() < .002:
-                KpMod = .1
-            else:
-                KpMod = 1
-##      Otherwise reset error terms to zero
+                turnCorr = .1 * turnCorr
+                speedCorr = .3
+                
         else:
-            err = 0
-            errInt = 0
-            errDer = 0
-            errPrev = 0
+            
+##          Otherwise reset PID
+            pid.reset()
             fwd = 0
+            
 ##          Turn in last turn direction
             if lastTurn < 0:
                 turn = -.13
             else:
                 turn = .13
-
-##      Calculate turn correction factor - PID controler
-        turnCorr = Kp * KpMod * err + Ki * errInt + Kd * errDer
 
 ##      Apply speed and turn correction factors
         fwd = fwd * speedCorr
