@@ -50,6 +50,8 @@ class PID:
 
         return self.Kp * self.error + self.Ki * self.errorInt + self.Kd * self.errorDer
         
+    def getError(self):
+        return self.error
 
     def reset(self):
         self.error = 0
