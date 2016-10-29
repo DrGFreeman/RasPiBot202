@@ -26,12 +26,12 @@ try:
 
 
 ##  PID controler gains
-    Kp = .18 #.20 # Proportional term gain
-    Ki = .03 #.04 # Integral term gain
-    Kd = .007 #.007 # Derivative term gain
+    Kp = .22 #.20 # Proportional term gain
+    Ki = .04 #.04 # Integral term gain
+    Kd = .008 #.007 # Derivative term gain
 
     pid = PID.PID(Kp, Ki, Kd)
-    pid.setMedianFilter(True)
+    pid.setMedianFilter(False)
 
 ##  Main loop time step
     fps = 20.
@@ -60,7 +60,10 @@ try:
 ##         Reduce turn correction and speed if object is far
             if objTracker.getObjAreaRatio() < .002:
                 turnCorr = .1 * turnCorr
-                speedCorr = .3
+
+##         Reduce speed if error is large
+
+            speedCorr = 1 - .6 * abs(pid.getError())
                 
         else:
             
