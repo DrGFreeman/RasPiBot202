@@ -116,6 +116,14 @@ class LineTracker:
                     area = btmLine.area()
                     self.linesAreaRatio.insert(0, area / iBoxContArea)
 
+            else:
+                self.nbLines = 0
+                self.lines = []
+                self.linesHPos = []
+                self.linesAreaRatio = []
+                btmLine = None
+                topLine = None
+                
 ##          Display processed line blobs
             if self.display :
                 dl = img.dl()
@@ -130,13 +138,7 @@ class LineTracker:
                     img.applyLayers().show()
                 else:
                     img.show()
-            else:
-                self.nbLines = 0
-                self.lines = []
-                self.linesHPos = []
-                self.linesAreaRatio = []
-                btmLine = None
-                topLine = None
+
 
             dt = time.time() - t0
             if dt < 1 / freq:
