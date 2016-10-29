@@ -9,7 +9,7 @@ rpb202 = robotBuilder.build(True)
 ##  Create direct pointer to camera object tracker
 print "Connecting camera"
 lineTracker = rpb202.camera.lineTracker
-lineTracker.setDisplay(True)
+lineTracker.setDisplay(False)
 
 
 try:
@@ -31,8 +31,8 @@ try:
 
 ##  PID controler gains
     Kp = .12  #.18 #.20 # Proportional term gain
-    Ki = .00  #.06 #.04 # Integral term gain
-    Kd = .00  #.012 #.007 # Derivative term gain
+    Ki = .02  #.06 #.04 # Integral term gain
+    Kd = .005  #.012 #.007 # Derivative term gain
 
 ##  Main loop time step
     fps = 20.
@@ -74,6 +74,9 @@ try:
 ##      Calculate turn correction factor - PID controler
         turnCorr = Kp * err + Ki * errInt + Kd * errDer
 
+##      Calculate speed correction factor (slow-down if large error)
+        speedCorr = 1 - 0.6 * abs(err)
+
 ##      Apply speed and turn correction factors
         fwd = fwd * speedCorr
         turn = turn + turnCorr
@@ -85,7 +88,7 @@ try:
         lastTurn = turn
         turn = 0
         turnCorr = 0
-        fwd = .15
+        fwd = .4
         speedCorr = 1
 
 ##      Calculate and apply delay to reach time step
