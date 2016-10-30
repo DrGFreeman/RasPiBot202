@@ -164,6 +164,15 @@ class LineTracker:
         else:
             return 0
 
+    def getLinesAreaRatio(self, line):
+        if len(self.linesAreaRatio) > line:
+            return self.linesAreaRatio[line]
+        else:
+            return 0
+
+    def getNbLines(self):
+        return self.nbLines
+
     def setDisplay(self, display):
         self.display = display
 
