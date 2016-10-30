@@ -30,9 +30,9 @@ try:
     errPrev = 0  # Previous error (for derivative calculation)
 
 ##  PID controler gains
-    Kp = .12  #.18 #.20 # Proportional term gain
-    Ki = .02  #.06 #.04 # Integral term gain
-    Kd = .005  #.012 #.007 # Derivative term gain
+    Kp = .105  #.18 #.20 # Proportional term gain
+    Ki = .03  #.06 #.04 # Integral term gain
+    Kd = .007  #.012 #.007 # Derivative term gain
 
 ##  Main loop time step
     fps = 20.
@@ -63,19 +63,19 @@ try:
             errInt = 0
             errDer = 0
             errPrev = 0
-            fwd = 0
+            fwd = .15
             
 ##          Turn in last turn direction
             if lastTurn < 0:
-                turn = -.13
+                turn = -.15
             else:
-                turn = .13
+                turn = .15
 
 ##      Calculate turn correction factor - PID controler
         turnCorr = Kp * err + Ki * errInt + Kd * errDer
 
 ##      Calculate speed correction factor (slow-down if large error)
-        speedCorr = 1 - 0.6 * abs(err)
+        speedCorr = 1 - 0.75 * abs(err)
 
 ##      Apply speed and turn correction factors
         fwd = fwd * speedCorr
@@ -88,7 +88,7 @@ try:
         lastTurn = turn
         turn = 0
         turnCorr = 0
-        fwd = .4
+        fwd = .5
         speedCorr = 1
 
 ##      Calculate and apply delay to reach time step
