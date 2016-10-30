@@ -13,7 +13,7 @@ def turn(angle, dir = "L"):
     fullTurn = 1.5
     if dir == "L":
         rpb202.turn(turnSpeed)
-    elif dir == "R"
+    elif dir == "R":
         rpb202.turn(-turnSpeed)
     time.sleep(fullTurn * angle / 360)
     rpb202.stop()
@@ -60,7 +60,7 @@ def fwdOnLine(speed):
     ##  Stop robot
     rpb202.stop()
 
-    IntersectionConfig = 0
+    intersectionConfig = 0
     
     ##  Case of an intersection
     if lineTracker.getNbLines() > 2:
