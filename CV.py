@@ -9,6 +9,7 @@ class Camera:
         self.camera = SimpleCV.Camera()
         self.objTracker = ObjTracker(self.camera)
         self.lineTracker = LineTracker(self.camera)
+        self.lineTrackerBox = LineTrackerBox(self.camera)
         self.display = False
 
     def _show(self, freq):
@@ -184,6 +185,138 @@ class LineTracker:
 
 ##  Add get methods for lines, linesHPos & linesAreaRatio
 
+class LineTrackerBox:
+
+    def __init__(self, camera, display = False):
+        self.camera = camera
+        self.active = False
+        self.btm = False
+        self.btmHPos = []
+        self.btmAreaRatio = []
+        self.top = False
+        self.topAreaRatio = []
+        self.left = False
+        self.right = False
+        self.intersection = []
+        
+    def _trackLines(self, freq):
+
+        self.active = True
+
+        while self.active:
+
+            t0 = time.time()
+
+            img = self.camera.getImage()
+    
+            ##  Resize and crop image (crop values pixel values apply before resize)
+            topCrop = 256
+            botCrop = 0
+            leftCrop = 64
+            rightCrop = 64
+            img = img.crop(leftCrop, topCrop, img.width - leftCrop - rightCrop, img.height - topCrop - botCrop)
+            img = img.resize(w = 256)
+
+            ##  Isolate path lines (green masking tape)
+            iBin = img.hueDistance(color = (40, 156, 100), minsaturation = 120).binarize()
+
+            ##  Isolate zone images
+            cWidth = 8
+            imgTop = iBin.crop((cWidth, 0), (256 - cWidth, cWidth))
+            imgBtm = iBin.crop((0, 112 - cWidth), (256, 112))
+            imgLeft = iBin.crop((0, 0), (cWidth, 112 - cWidth))
+            imgRight = iBin.crop((256 - cWidth, 0), (256, 104))
+
+            ##  Reset intersection configuration
+            intersection = 0
+
+            ##  Analyse bottom image
+            blobsBtm = imgBtm.findBlobs(minsize = 20)
+            if blobsBtm is not None:
+                blobsBtm = blobsBtm.sortArea()
+                self.btm = True
+                x, y = blobsBtm[0].centroid()
+                self.btmHPos = (256 / 2 - x) / (256 / 2)
+                self.btmAreaRatio = blobsBtm[0].area() / float(imgBtm.area())
+            else:
+                self.btm = False
+                self.btmHPos = []
+                self.btmAreaRatio = []
+
+            ## Analyse top image
+            blobsTop = imgTop.findBlobs(minsize = 20)
+            if blobsTop is not None:
+                blobsTop = blobsTop.sortArea()
+                self.top = True
+                self.topAreaRatio = blobsTop[0].area() / float(imgTop.area())
+                intersection += 2
+            else:
+                self.top = False
+                self.topAreaRatio = []
+
+
+            ## Analyse left image
+            blobsLeft = imgLeft.findBlobs(minsize = 20)
+            if blobsLeft is not None:
+                self.left = True
+                intersection += 1
+            else:
+                self.left = False
+
+            ## Analyse right image
+            blobsRight = imgRight.findBlobs(minsize = 20)
+            if blobsRight is not None:
+                self.Right = True
+                intersection += 4
+            else:
+                self.Right = False
+
+            blobs = iBin.findBlobs()
+            if blobs is not None:
+                blobs = blobs.sortArea()
+#                print blobs[0].area() / iBin.area()
+                if (blobs[0].area() / iBin.area()) > .5:
+                    intersection = 8
+
+            self.intersection = intersection
+
+            dt = time.time() - t0
+            if dt < 1 / freq:
+                time.sleep(1 / freq -dt)
+
+    def trackLines(self, freq = 10):
+        th = threading.Thread(target = self._trackLines, args = [freq])
+        th.start()
+
+    def stop(self):
+        self.active = False
+        self.btm = False
+        self.btmHPos = []
+        self.btmAreaRatio = []
+        self.top = False
+        self.topAreaRatio = []
+        self.left = False
+        self.right = False
+        self.intersection = []
+
+    def getBtmHPos(self):
+        if self.btm:
+            return self.btmHPos
+        else:
+            return 0
+
+    def getBtmAreaRatio(self):
+        return self.btmAreaRatio
+
+    def getTopAreaRatio(self):
+        return self.topAreaRatio
+
+    def getIntersection(self):
+        if self.btm:
+            return self.intersection
+        else:
+            return -1
+        
 
 class ObjTracker:
 
