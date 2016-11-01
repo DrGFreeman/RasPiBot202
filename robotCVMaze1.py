@@ -9,8 +9,8 @@ import PID
 ##  Turn robot
 def turn(angle, dir = "L"):
 
-    turnSpeed = .2
-    fullTurn = 1.5
+    turnSpeed = .25
+    fullTurn = turn1
     if dir == "L":
         rpb202.turn(turnSpeed)
     elif dir == "R":
@@ -23,94 +23,51 @@ def turn(angle, dir = "L"):
 def moveToIntersection(speed):
 
     rpb202.forward(speed)
-    time.sleep(.25)  # Tuned for .25 / 2 fwd speed
+    time.sleep(fwd2 - fwd1)  # Tuned for .25 / 2 fwd speed
     rpb202.stop()
     time.sleep(tStep * 2)
 
 ##  Move robot forward on line until intersection. Return configuration of intersection
 def fwdOnLine(speed):
-    
-    while lineTracker.getNbLines() == 2:
 
-        t0 = time.time()
+    pid = PID.PID(.07)
 
-        ##  Check if second line is on left -> perform left turn
-        if lineTracker.getLinesHPos(1) < 8:
-            print "Left corner detected"
-            moveToIntersection(speed / 2.)
-            turn(90, "L")
-            
-        ##  Else check if second line is on right -> perform right turn
-        elif 192 < lineTracker.getLinesHPos(1):
-            print "Right corner detected"
-            moveToIntersection(speed / 2.)
-            turn(90, "R")
-            
-        ##  Else move forward
-        else:
-            pid = PID.PID(.105, .03, .007)
-            turn = -pid.getOutput(0, lineTracker.getLinesHPos(0), tStep)
-            rpb202.move(speed, turn)
+    finished = False
+    while not finished:
+        
+        ##  Follow line until intersection is found    
+        while lineTracker.getIntersection() == 2:
 
-            ##  Finish time step
+            t0 = time.time()
+
+            turnCorr = -pid.getOutput(0, lineTracker.getBtmHPos(), tStep)
+            rpb202.move(speed, turnCorr)
+
             dt = time.time() - t0
             if dt < tStep:
                 time.sleep(tStep - dt)
 
-    ##  Stop robot
-    rpb202.stop()
-
-    intersectionConfig = 0
-    
-    ##  Case of an intersection
-    if lineTracker.getNbLines() > 2:
-        print "Intersection detected"
-        ##  Move fwd slightly to allow seeing all lines from intersection
-        rpb202.forward(speed / 2.)
-        time.sleep(.05)
+        ##  At intersection move forward slightly
+        rpb202.move(speed, 0)
+        time.sleep(fwd1)
         rpb202.stop()
 
-    ##  Assess intersection configuration
-    if lineTracker.getNbLines() == 3:
-    ##  check if one line to left
-        if lineTracker.getLinesHPos(1) < 8:
-            "Left detected"
-            intersectionConfig += 1
-            ##  check if also one line on right -> "T" intersection
-            if 192 < lineTracker.getLinesHPos(2):
-                "Right detected"
-                intersectionConfig += 4
-            ##  If no right, there is one straight and one left
-            else:
-                "Straight detected"
-                intersectionConfig += 2
-        ##  Else there is one straight and one right
+        intersection = lineTracker.getIntersection()
+        #print "Capture"
+
+        moveToIntersection(speed)
+
+        ##  Case of a left turn
+        if intersection == 1:
+            turn(90, "L")
+        elif intersection == 4:
+            turn(90, "R")
         else:
-            print "Straight detected"
-            print "Right detected"
-            intersectionConfig += 6
-            
-    ##  Else it is a 4 way intersection
-    elif lineTracker.getNbLines == 4:
-        print "Four way detected"
-        intersectionConfig += 7
+            finished = True
 
-    ##  Check if dead-end or finish
-    if lineTracker.getNbLines() == 1:
-        ##  Check if finish
-        if lineTracker.getLinesAreaRatio(0) > .75:
-            print "Finish reached"
-            intersectionConfig = 8
-        ##  Otherwise it is a dead-end
-        else:
-            intersectionConfig = 0
-            print "Dead-end"
-    ##  Else move to intersection
-    else:
-        moveToIntersection(speed / 2.)
+    return intersection
 
-    return intersectionConfig
-
+    
 
 ##  Replace dead-ends by appropriate turns
 def fixWrongTurns(turns):
@@ -139,6 +96,8 @@ def fixWrongTurns(turns):
         turns.pop()
         turns.pop()
 
+    return turns
+
 
 ########################################
 ##  Setup
@@ -149,8 +108,7 @@ rpb202 = robotBuilder.build(True)
 
 ##  Create direct pointer to camera object tracker
 print "Connecting camera"
-lineTracker = rpb202.camera.lineTracker
-lineTracker.setDisplay(False)
+lineTracker = rpb202.camera.lineTrackerBox
 
 ##  Main loop time step
 fps = 20.
@@ -168,30 +126,39 @@ time.sleep(1)
 mazeTurns = []
 
 ##  Main loop
-print "Start maze learning"
+
+print "Start main"
 
 try:
 
-    ########################################
-    ##  Learn maze
-    
+    fwd1 = 0.45
+    fwd2 = 1.55
+    turn1 = 4.55
+
     finished = False
     while not finished:
 
         inter = fwdOnLine(fwdSpeed)
-        
+        print "Intersection code: ", inter
+
         ##  Case of a dead-end
-        if inter == 1:
+        if inter == 0:
             turn(180, defTurnDir)
             mazeTurns.append("U")
+        ##  Case of a left turn
+        elif inter == 1:
+            turn(90, "L")
+        ##  Case of a right turn
+        elif inter == 4:
+            turn(90, "R")
         ##  Cases where default left turn can be made
         elif defTurnDir == "L" and (inter == 3 or inter == 5 or inter == 7):
             turn(90, defTurnDir)
-            mazeTurns.append(defTurnDir)
+            mazeTurns.append("L")
         ##  Cases where default right turn can be made
         elif defTurnDir == "R" and (inter == 5 or inter == 6 or inter == 7):
             turn(90, defTurnDir)
-            mazeTurns.append(defTurnDir)
+            mazeTurns.append("R")
         ##  Case where default left turn cannot be made
         elif defTurnDir == "L" and inter == 6:
             mazeTurns.append("S")
@@ -201,9 +168,12 @@ try:
         ##  Finish reached
         elif inter == 8:
             finished = True
+
+        print mazeTurns
             
         ##  Replace dead-ends by appropriate turns
         mazeTurns = fixWrongTurns(mazeTurns)
+        print mazeTurns
 
     ##  Learning completed
     print "Maze learning completed."
@@ -213,26 +183,47 @@ try:
     ########################################
     ##  Optimized course
     print "\nStarting optimized course"
-    for turn in mazeTurns:
 
-        fwdOnLIne(fwdSpeed)
-        if turn == "L":
+    fwdOnLine(fwdSpeed)
+    for mazeTurn in mazeTurns:
+
+        if mazeTurn == "L":
             print "Left turn"
             turn(90, "L")
-        elif turn == "R":
+        elif mazeTurn == "R":
             print "Right turn"
             turn(90, "R")
         else:
             print "Straight"
+            
+        fwdOnLine(fwdSpeed)
 
     print "Finished optimized course"
 
 
+##        turn(180, defTurnDir)
+##
+##        print "\nCurrent time for intersection detection: ", fwd1
+##        fwd1 = raw_input("Enter new time for intersection detection: ")
+##        print "\nCurrent time for move to intersection: ", fwd2
+##        fwd2 = raw_input("Enter new time for move to intersection: ")
+##        print "\nCurrent time for full turn: ", turn1
+##        turn1 = raw_input("Enter new time for full turn: ")
+##
+##        if fwd1 == "q" or fwd2 == "q":
+##            end = True
+##        else:
+##            fwd1 = float(fwd1)
+##            fwd2 = float(fwd2)
+##            turn1 = float(turn1)
+
+
     ########################################
-    ##  End of main loop. Stop robot and threads
+    ##  End of main loop. Stop robot and CV threads
     rpb202.stop()
     rpb202.camera.stop()
     lineTracker.stop()
+    time.sleep(2 * tStep)
         
 ##  Use Ctrl-C to end
 except KeyboardInterrupt:
@@ -240,4 +231,4 @@ except KeyboardInterrupt:
     rpb202.camera.stop()
     lineTracker.stop()
     print "\nExiting program"
-    time.sleep(1)
+    time.sleep(2 * tStep)
