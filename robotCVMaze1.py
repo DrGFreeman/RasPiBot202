@@ -17,20 +17,41 @@ def turn(angle, dir = "L"):
         rpb202.turn(-turnSpeed)
     time.sleep(fullTurn * angle / 360)
     rpb202.stop()
+
+    turnCorr = .1 * lineTracker.getBtmHPos()
+    while abs(turnCorr) > .1:
+        print turnCorr
+        rpb202.turn(turnCorr)
+        time.sleep(tStep)
+        turnCorr = .1 * lineTracker.getBtmHPos()
+    
     time.sleep(tStep * 2)
 
 ##  Move robot to center of intersection after detection
 def moveToIntersection(speed):
 
-    rpb202.forward(speed)
-    time.sleep(fwd2 - fwd1)  # Tuned for .25 / 2 fwd speed
+    pid = PID.PID(.1)
+
+    t0 = time.time()
+
+    while time.time() - t0 < fwd2 - fwd1:
+
+        t1 = time.time()
+        
+        turnCorr = -pid.getOutput(0, lineTracker.getBtmHPos(), tStep)
+        rpb202.move(speed, turnCorr)
+
+        dt = time.time() - t1
+        if dt < tStep:
+            time.sleep(tStep - dt)
+
     rpb202.stop()
-    time.sleep(tStep * 2)
+    #time.sleep(tStep * 2)
 
 ##  Move robot forward on line until intersection. Return configuration of intersection
 def fwdOnLine(speed):
 
-    pid = PID.PID(.07)
+    pid = PID.PID(.1, .05)
 
     finished = False
     while not finished:
@@ -131,9 +152,9 @@ print "Start main"
 
 try:
 
-    fwd1 = 0.45
+    fwd1 = .45
     fwd2 = 1.55
-    turn1 = 4.55
+    turn1 = 4.55#4.55
 
     finished = False
     while not finished:
