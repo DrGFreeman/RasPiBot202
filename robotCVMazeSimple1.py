@@ -69,11 +69,16 @@ def fwdOnLine(speed):
                 time.sleep(tStep - dt)
 
         ##  At intersection move forward slightly
+
+##        img = rpb202.camera.camera.getImage()
+##        img.save("/home/pi/Pictures/maze/" + str(time.time()) + ".png")
         rpb202.move(speed, 0)
         time.sleep(fwd1)
         rpb202.stop()
 
         intersection = lineTracker.getIntersection()
+##        img = rpb202.camera.camera.getImage()
+##        img.save("/home/pi/Pictures/maze/" + str(time.time()) + ".png")
         #print "Capture"
 
         moveToIntersection(speed)
@@ -152,9 +157,9 @@ print "Start main"
 
 try:
 
-    fwd1 = .45
-    fwd2 = 1.55
-    turn1 = 4.55#4.55
+    fwd1 = .4 #.45
+    fwd2 = 1.45 #1.55
+    turn1 = 4 #4.55
 
     finished = False
     while not finished:
