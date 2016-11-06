@@ -77,6 +77,7 @@ def fwdOnLine(speed):
         rpb202.stop()
 
         intersection = lineTracker.getIntersection()
+
 ##        img = rpb202.camera.camera.getImage()
 ##        img.save("/home/pi/Pictures/maze/" + str(time.time()) + ".png")
         #print "Capture"
@@ -141,7 +142,7 @@ fps = 20.
 tStep = 1 / fps
 
 ##  Default speed & turn direction
-fwdSpeed = .25
+fwdSpeed = .26
 defTurnDir = "L"
 
 ##  Launch object tracker
@@ -157,9 +158,9 @@ print "Start main"
 
 try:
 
-    fwd1 = .4 #.45
-    fwd2 = 1.45 #1.55
-    turn1 = 4 #4.55
+    fwd1 = .45 #.45
+    fwd2 = 1.55 #1.55
+    turn1 = 4.3 #4.55
 
     finished = False
     while not finished:
