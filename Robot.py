@@ -1,4 +1,4 @@
-from a_star import AStar
+from a_star_rpb202 import AStar
 from Motors import *
 from Sensors import *
 
