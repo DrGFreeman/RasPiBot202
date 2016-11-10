@@ -1,6 +1,7 @@
 import math
 import time
 
+# Function boundAngle(angle) takes any angle as "angle" and returns the equivalent angle bound within 0 <= angle < 2 * Pi
 def boundAngle(angle):
     if angle < 0:
         angle = angle + 2 * math.pi
@@ -8,6 +9,8 @@ def boundAngle(angle):
         angle = angle % (2 * math.pi)
     return angle
 
+# Function relativeAngle(angleRef, angle) returns the shortest relative angle from a reference angle "angleRef"
+# to an angle "angle". The retuned relative angle is bound within -Pi < angle < Pi
 def relativeAngle(angleRef, angle):
     angleRef = boundAngle(angleRef)
     angle = boundAngle(angle)
