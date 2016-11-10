@@ -9,13 +9,13 @@ def boundAngle(angle):
     return angle
 
 def relativeAngle(angleRef, angle):
-    AngleRef = boundAngle(angleRef)
-    Angle = boundAngle(angle)
+    angleRef = boundAngle(angleRef)
+    angle = boundAngle(angle)
 
-    if Angle - AngleRef > math.pi:
-        relativeAngle = Angle - AngleRef - 2 * math.pi
+    if angle - angleRef > math.pi:
+        relativeAngle = angle - angleRef - 2 * math.pi
     elif Angle - AngleRef < math.pi:
-        relativeAngle = Angle - AngleRef + 2 * math.pi
+        relativeAngle = angle - angleRef + 2 * math.pi
 
     return relativeAngle
     
