@@ -1,12 +1,16 @@
 from a_star_rpb202 import AStar
+from Encoders import *
 from Motors import *
+from Odometer import *
 from Sensors import *
 
 class Robot:
 
     def __init__(self):
         self.aStar = AStar()
-        self.motors = Motors(self.aStar)
+        self.encoders = Encoders(self.aStar)
+        self.motors = Motors(self.aStar, self.encoders)
+        self.odometer = Odometer(self.encoders)
         self.sensors = []
         self.buttons = []
         self.analog = [0, 0, 0, 0, 0, 0]

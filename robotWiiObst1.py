@@ -12,6 +12,8 @@ snrCtr = rpb202.sensors[2]
 irAR = rpb202.sensors[3]
 irDR = rpb202.sensors[4]
 
+enc = rpb202.encoders
+
 try:
 
 # WiiRemote - Constantes
@@ -39,6 +41,8 @@ try:
         # Read aStar (sensors, buttons, etc.)
         rpb202.readAStar()
 
+        print enc.getCounts()
+
         # Set turn correction and speed correction off
         turnCorr = 0
         speedCorr = 1
@@ -61,7 +65,7 @@ try:
             if aR < speedCorrRange:
                 speedCorr -= speedCorrGain * (speedCorrRange - aR) / speedCorrRange
 
-        print snrCtr.getObstDist()
+##        print snrCtr.getObstDist()
 ##        if snrCtr.hasObst(0, 600):
 ##            aC = snrCtr.getObstDist()
 ##            if aC < speedCorrRange:
@@ -81,6 +85,9 @@ try:
 
         if wii.btnA:
             end = True
+
+        if wii.btnZ:
+            enc.reset()
 
         fwd = fwd * speedCorr
         turn = turn + turnCorr
