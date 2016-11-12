@@ -12,6 +12,14 @@ class Motors:
         self.encoders = encoders
 
     def speed(self, speedL, speedR):
+        if speedL < -1:
+            speedL = -1
+        elif speedL > 1:
+            speedL = 1
+        if speedR < -1:
+            speedR = -1
+        if speedR > 1:
+            speedR = 1
         self.aStar.motors(speedL * self.dirL * self.maxFwdSpeed, speedR * self.dirR * self.maxFwdSpeed)
         # Temporary fix to bypass defective pin B on left encoder
         self.setEncodersDir(speedL, speedR)

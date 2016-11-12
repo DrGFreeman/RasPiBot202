@@ -1,5 +1,6 @@
 import math
 import time
+from Timer import Timer
 
 # Function boundAngle(angle) takes any angle as "angle" and returns the equivalent angle bound within 0 <= angle < 2 * Pi
 def boundAngle(angle):
@@ -17,8 +18,10 @@ def relativeAngle(angleRef, angle):
 
     if angle - angleRef > math.pi:
         relativeAngle = angle - angleRef - 2 * math.pi
-    elif Angle - AngleRef < math.pi:
-        relativeAngle = angle - angleRef + 2 * math.pi
+##    elif angle - angleRef < math.pi:
+##        relativeAngle = angle - angleRef + 2 * math.pi
+    else:
+        relativeAngle = angle - angleRef
 
     return relativeAngle
     
@@ -27,8 +30,9 @@ class Odometer:
 
     def __init__(self, encoders):
         self.encoders = encoders
-        self.track = 145 # width between wheels in millimeters
-        self.distPerTick = 70 * math.pi / 720 # Wheel circumference / nb of ticks per revolution
+        self.track = 145. # width between wheels in millimeters
+##        self.distPerTick = 70 * math.pi / 720 # Wheel circumference / nb of ticks per revolution
+        self.distPerTick = .32938
         self.lastCountLeft = 0
         self.lastCountRight = 0
         self.phi = 0
@@ -36,12 +40,15 @@ class Odometer:
         self.y = 0
         self.v = 0
         self.omega = 0
+        self.timer = Timer()
         self.lastUpdateTime = 0
+        self.timeStep = 1
         self.active = False
 
     def update(self):
-        updateTime = time.time()
-        
+##        updateTime = time.time()
+        self.timeStep = self.timer.getElapsed()
+        self.timer.reset()
         countLeft, countRight = self.encoders.getCounts()
 
         deltaCountLeft = countLeft - self.lastCountLeft
@@ -49,32 +56,36 @@ class Odometer:
 
         distLeft = deltaCountLeft * self.distPerTick
         distRight = deltaCountRight * self.distPerTick
-        distCenter = (distLeft + distRight) / 2
+        distCenter = (distLeft + distRight) / 2.
         
-
         self.x += distCenter * math.cos(self.phi)
         self.y += distCenter * math.sin(self.phi)
 
         deltaPhi = (distRight - distLeft) / self.track
         self.phi = boundAngle(self.phi + deltaPhi)
-
-        
+       
         if self.active:
-            timeStep = updateTime - self.lastUpdateTime
-            self.v = distCenter / timeStep
-            self.omega = deltaPhi / timeStep
+##            self.timeStep = updateTime - self.lastUpdateTime
+            self.v = distCenter / self.timeStep
+            self.omega = deltaPhi / self.timeStep
         else:
             self.active = True
 
         self.lastCountLeft = countLeft
         self.lastCountRight = countRight
-        self.lastUpdateTime = updateTime
+##        self.lastUpdateTime = updateTime
 
     def getPosXY(self):
         return self.x, self.y
 
     def getPosXYPhi(self):
         return self.x, self.y, self.phi
+
+    def getPhi(self):
+        return self.phi
+
+    def angleRelToPhi(self, angle):
+        return relativeAngle(self.phi, angle)
 
     def getOmega(self):
         return self.omega
@@ -95,3 +106,6 @@ class Odometer:
         self.phi = 0
         self.x = 0
         self.y = 0
+
+    def resetTimer(self):
+        self.timer.reset()
