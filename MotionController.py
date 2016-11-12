@@ -15,29 +15,35 @@ class MotionController:
         self.phiPID = PID()
         self.mode = "STOPPED"
 
-    def forwardAngle(self, speed, angle):
+    def forwardAngle(self, speedCmd, angle):
         self.setMode('FORWARD')
         self.odometer.update()
-        turnCmd = self.phiPID.getOutput(angle, self.odometer.angleRelToPhi(angle), self.odometer.timeStep)
+        turnCmd = self.phiPID.getOutput(0, -self.odometer.angleRelToPhi(angle), self.odometer.timeStep)
 ##        turnCmd = self.omegaPID.getOutput(0., self.odometer.getOmega(), self.odometer.timeStep)
 ##        speedCmd = self.speedPID.getOutput(speed, self.odometer.getSpeed(), self.odometer.timeStep)
-        speedCmd = speed
-        self.motors.speed(speedCmd - turnCmd, speedCmd + turnCmd)
+        self.motors.cmd(speedCmd - turnCmd, speedCmd + turnCmd)
 
-    def turnAngle(self, turnSpeed, angle):
+    def turnAngle(self, angle):
         self.setMode('TURN')
+        timeStep = .05
+        maxTurnCmd = .3
+        minTurnCmd = .12
+        turnPID = PID(.3)
         self.odometer.update()
         loopTimer = Timer()
-        while abs(self.odometer.angleRelToPhi(angle)) > .05:
-            angleError = self.odometer.angleRelToPhi(angle)
-            print self.odometer.getPhi()
-            turnCmd = .5 * angleError
-            if turnCmd > turnSpeed:
-                turnCmd = turnSpeed
-            elif turnCmd < -turnSpeed:
-                turnCmd = -turnSpeed
-            self.motors.speed(-turnCmd, turnCmd)
-            loopTimer.sleepToElapsed(.05)
+        while abs(self.odometer.angleRelToPhi(angle)) > math.pi/180.:
+##            print self.odometer.angleRelToPhi(angle)
+            turnCmd = turnPID.getOutput(0, -self.odometer.angleRelToPhi(angle), timeStep)
+            if turnCmd > maxTurnCmd:
+                turnCmd = maxTurnCmd
+            elif turnCmd < -maxTurnCmd:
+                turnCmd = -maxTurnCmd
+            if turnCmd > 0 and turnCmd < minTurnCmd:
+                turnCmd = minTurnCmd
+            elif turnCmd < 0 and turnCmd > -minTurnCmd:
+                turnCmd = -minTurnCmd
+            self.motors.cmd(-turnCmd, turnCmd)
+            loopTimer.sleepToElapsed(timeStep)
             self.odometer.update()
         self.stop()
             
@@ -53,7 +59,7 @@ class MotionController:
             self.reset()
             # Set PID constants for specific mode
             if mode == 'FORWARD':
-                self.phiPID.setKs(.4, .2)
+                self.phiPID.setKs(.25, .5)
 ##                self.speedPID.setKs(.01, .01)
                 
 
