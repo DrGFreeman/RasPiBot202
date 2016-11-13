@@ -40,7 +40,7 @@ class Robot:
         self.motors.turn(rotSpeed)
 
     def move(self, speed, rotSpeed):
-        self.motors.speed(speed - rotSpeed, speed + rotSpeed) 
+        self.motors.cmd(speed - rotSpeed, speed + rotSpeed) 
 
     def stop(self):
         self.motors.stop()
