@@ -31,8 +31,7 @@ class Odometer:
     def __init__(self, encoders):
         self.encoders = encoders
         self.track = 146. # width between wheels in millimeters
-##        self.distPerTick = 70 * math.pi / 720 # Wheel circumference / nb of ticks per revolution
-        self.tick = .32938
+        self.tickDist = .32938
         self.lastCountLeft = 0
         self.lastCountRight = 0
         self.phi = 0
@@ -52,8 +51,8 @@ class Odometer:
         deltaCountLeft = countLeft - self.lastCountLeft
         deltaCountRight = countRight - self.lastCountRight
 
-        distLeft = deltaCountLeft * self.tick
-        distRight = deltaCountRight * self.tick
+        distLeft = deltaCountLeft * self.tickDist
+        distRight = deltaCountRight * self.tickDist
         distCenter = (distLeft + distRight) / 2.
         
         self.x += distCenter * math.cos(self.phi)

@@ -2,7 +2,7 @@ class Motors:
 
     def __init__(self, aStar, encoders):
         self.aStar = aStar
-        self.trimL = 1
+        self.trimL = .90
         self.trimR = 1
         self.dirL = 1 * self.trimL
         self.dirR = 1 * self.trimR
@@ -10,7 +10,7 @@ class Motors:
         self.maxRotCmd = 300
         self.prevCmdL = 0
         self.prevCmdR = 0
-        self.accelStep = .1
+        self.accelStep = .07
         # Temporary fix to bypass defective pin B on left encoder
         self.encoders = encoders
 
