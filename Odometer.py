@@ -46,7 +46,7 @@ class Odometer:
     def update(self):
         self.timeStep = self.timer.getElapsed()
         self.timer.reset()
-        countLeft, countRight = self.encoders.getCounts()
+        countLeft, countRight = self.encoders.readCounts()
 
         deltaCountLeft = countLeft - self.lastCountLeft
         deltaCountRight = countRight - self.lastCountRight

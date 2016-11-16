@@ -1,10 +1,12 @@
 from PID import PID
 from Timer import Timer
+from Encoders import Encoders
 
 class Motors:
 
     def __init__(self, aStar, encoders):
         self.aStar = aStar
+        self.encoders = encoders
         self.trimL = 1
         self.trimR = .95
         self.dirL = 1 * self.trimL
@@ -27,16 +29,14 @@ class Motors:
 
         self.timer.sleepToElapsed(.05)
         
-        # Temporary fix to bypass defective pin B on left encoder
-        self.encoders = encoders
 
     def speed(self, speedTargetL, speedTargetR):
         timeStep = self.timer.getElapsed()
         self.timer.reset()
-        countL, countR = self.encoders.getCounts()
+        self.countL, self.countR = self.encoders.getCounts()
 
-        deltaCountL = countL - self.lastCountL
-        deltaCountR = countR - self.lastCountR
+        deltaCountL = self.countL - self.lastCountL
+        deltaCountR = self.countR - self.lastCountR
 
         self.speedL = deltaCountL * self.tickDist / timeStep
         self.speedR = deltaCountR * self.tickDist / timeStep
@@ -96,7 +96,7 @@ class Motors:
         self.lastCountL = 0
         self.lastCountR = 0
         self.speedL = 0
-        self.speed = 0
+        self.speedR = 0
 
     def stop(self):
         self.aStar.motors(0, 0)
