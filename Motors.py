@@ -31,7 +31,8 @@ class Motors:
         
 
     def speed(self, speedTargetL, speedTargetR):
-        timeStep = self.timer.getElapsed()
+##        timeStep = self.timer.getElapsed()
+        timeStep = .05
         self.timer.reset()
         self.countL, self.countR = self.encoders.getCounts()
 

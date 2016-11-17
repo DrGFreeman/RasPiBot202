@@ -30,7 +30,7 @@ class Odometer:
 
     def __init__(self, encoders):
         self.encoders = encoders
-        self.track = 146. # width between wheels in millimeters
+        self.track = 141.5 # width between wheels in millimeters
         self.tickDist = .32938
         self.lastCountLeft = 0
         self.lastCountRight = 0
@@ -44,8 +44,10 @@ class Odometer:
         self.active = False
 
     def update(self):
-        self.timeStep = self.timer.getElapsed()
+##        self.timeStep = self.timer.getElapsed()
+        self.timeStep = .05
         self.timer.reset()
+##        print "Odometer timeStep: ", self.timeStep
         countLeft, countRight = self.encoders.readCounts()
 
         deltaCountLeft = countLeft - self.lastCountLeft
