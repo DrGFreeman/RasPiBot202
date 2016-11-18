@@ -1,6 +1,5 @@
 import math
 import time
-from Timer import Timer
 
 # Function boundAngle(angle) takes any angle as "angle" and returns the equivalent angle bound within 0 <= angle < 2 * Pi
 def boundAngle(angle):
@@ -28,9 +27,10 @@ def relativeAngle(angleRef, angle):
 
 class Odometer:
 
-    def __init__(self, encoders):
+    def __init__(self, encoders, timeStep = .05):
         self.encoders = encoders
-        self.track = 141.5 # width between wheels in millimeters
+        self.timeStep = timeStep
+        self.track = 141 # width between wheels in millimeters
         self.tickDist = .32938
         self.lastCountLeft = 0
         self.lastCountRight = 0
@@ -39,15 +39,10 @@ class Odometer:
         self.y = 0
         self.v = 0
         self.omega = 0
-        self.timer = Timer()
-        self.timeStep = 1
         self.active = False
 
     def update(self):
-##        self.timeStep = self.timer.getElapsed()
-        self.timeStep = .05
-        self.timer.reset()
-##        print "Odometer timeStep: ", self.timeStep
+
         countLeft, countRight = self.encoders.readCounts()
 
         deltaCountLeft = countLeft - self.lastCountLeft
@@ -103,6 +98,3 @@ class Odometer:
         self.phi = 0
         self.x = 0
         self.y = 0
-
-    def resetTimer(self):
-        self.timer.reset()

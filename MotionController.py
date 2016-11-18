@@ -9,11 +9,14 @@ from PID import PID
 class MotionController:
 
     def __init__(self, odometer, motors, timeStep = .05):
-        self.odometer = odometer
-        self.motors = motors
-        self.omegaPID = PID()
         self.timeStep = timeStep
+        self.odometer = odometer
+        self.odometer.timeStep = self.timeStep
+        self.motors = motors
+        self.motors.timeStep = self.timeStep
+        self.omegaPID = PID()
         self.mode = "STOPPED"
+        
 
     # Serial; Method will execute until the target distance is reached
     def forwardDist(self, speed, distTarget):
@@ -22,7 +25,7 @@ class MotionController:
         x0, y0 = self.odometer.getPosXY()
         dist = 0
         loopTimer = Timer()
-        while dist < distTarget:
+        while dist < distTarget - speed * 3 * self.timeStep:
             self.forwardAngle(speed, phi0)
             loopTimer.sleepToElapsed(self.timeStep)
             x1, y1 = self.odometer.getPosXY()
@@ -37,21 +40,21 @@ class MotionController:
     def forwardAngle(self, speed, angleTarget):
         self.setMode('FORWARD')
         self.odometer.update()
-        omega = self.omegaPID.getOutput(0, -self.odometer.angleRelToPhi(angleTarget), self.odometer.timeStep)
+        omega = self.omegaPID.getOutput(0, -self.odometer.angleRelToPhi(angleTarget), self.timeStep)
         speedL = speed - omega * math.pi * self.odometer.track
         speedR = speed + omega * math.pi * self.odometer.track
         self.motors.speed(speedL, speedR)
 
     # Serial; Method will execute until the target turn angle is achieved
-    def turnAngle(self, angleTarget):
+    def turnAngle(self, angleTarget, omegaTarget = math.pi / 12):
         self.odometer.update()
         phi0 = self.odometer.getPhi()
-        self.turnToAngle(phi0 + angleTarget)
+        self.turnToAngle(phi0 + angleTarget, omegaTarget)
 
     # Serial; Method will execute until the target angle is reached
     def turnToAngle(self, angleTarget, omegaTarget = math.pi / 12):
         self.setMode('TURN')
-        omegaMax = math.pi / 12.
+        omegaMax = math.pi / 6.
         omegaMin = math.pi / 36.
         self.odometer.update()
         loopTimer = Timer()
@@ -74,7 +77,7 @@ class MotionController:
             
     def reset(self):
         self.omegaPID.reset()
-        self.odometer.resetTimer()
+##        self.odometer.resetTimer()
         self.odometer.resetEncoders()
         
     def setMode(self, mode):
@@ -86,6 +89,11 @@ class MotionController:
                 self.omegaPID.setKs(.41, 0, 0)
             if mode == 'TURN':
                 self.omegaPID.setKs(1, 0, 0)
+
+    def setTimeStep(self, timeStep):
+        self.timeStep = timeStep
+        self.odometer.timeStep = timeStep
+        self.motors.timeStep = timeStep
 
     def stop(self):
         self.motors.stop()

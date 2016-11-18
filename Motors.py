@@ -1,10 +1,9 @@
 from PID import PID
-from Timer import Timer
 from Encoders import Encoders
 
 class Motors:
 
-    def __init__(self, aStar, encoders):
+    def __init__(self, aStar, encoders, timeStep = .05):
         self.aStar = aStar
         self.encoders = encoders
         self.trimL = 1
@@ -15,11 +14,11 @@ class Motors:
         self.maxRotCmd = 300
         self.prevCmdL = 0
         self.prevCmdR = 0
-        self.accelStep = .07
+        self.accelStep = .07 # Max increase in command between time steps for .cmd method
 
         self.pidL = PID(.7, 6)
         self.pidR = PID(.7, 6)
-        self.timer = Timer()
+        self.timeStep = timeStep
         self.tickDist = .32938 # Dist travelled per tick (in mm)
         self.speedCst = 742. # Approximate speed (in mm/s) for unit command
         self.lastCountL = 0
@@ -27,22 +26,23 @@ class Motors:
         self.speedL = 0
         self.speedR = 0
 
-        self.timer.sleepToElapsed(.05)
         
-
+    # In-loop; This method is designed to be called within a loop with a short time step
+    # Odometer.update() needs to be called in the loop to read the encoders counts. To
+    # use this method independent from the odometer, change self.encoder.getCounts()
+    # for self.encoders.readCounts() on the first line of the method.
+    # speedTarget arguments are in mm/s.
     def speed(self, speedTargetL, speedTargetR):
-##        timeStep = self.timer.getElapsed()
-        timeStep = .05
-        self.timer.reset()
+
         self.countL, self.countR = self.encoders.getCounts()
 
         deltaCountL = self.countL - self.lastCountL
         deltaCountR = self.countR - self.lastCountR
 
-        self.speedL = deltaCountL * self.tickDist / timeStep
-        self.speedR = deltaCountR * self.tickDist / timeStep
-        cmdL = self.pidL.getOutput(speedTargetL, self.speedL, timeStep) / self.speedCst
-        cmdR = self.pidR.getOutput(speedTargetR, self.speedR, timeStep) / self.speedCst
+        self.speedL = deltaCountL * self.tickDist / self.timeStep
+        self.speedR = deltaCountR * self.tickDist / self.timeStep
+        cmdL = self.pidL.getOutput(speedTargetL, self.speedL, self.timeStep) / self.speedCst
+        cmdR = self.pidR.getOutput(speedTargetR, self.speedR, self.timeStep) / self.speedCst
 
         # Limit motor command
         if cmdL < -1:
@@ -62,6 +62,8 @@ class Motors:
         self.lastCountL += deltaCountL
         self.lastCountR += deltaCountR
 
+    # In-loop; This method is to be called from within a loop.
+    # cmd arguments are the motor speed commands ranging from -1 to 1 (-max to max speed)
     def cmd(self, cmdL, cmdR):
         # Limit motor acceleration
         if cmdL - self.prevCmdL > self.accelStep:
