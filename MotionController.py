@@ -45,6 +45,15 @@ class MotionController:
         speedR = speed + omega * math.pi * self.odometer.track
         self.motors.speed(speedL, speedR)
 
+    # In-loop; Need to call this method within a loop with a short time step
+    # in order for the odometer to update and the PID to adjust the angle.
+    def move(self, speed, omega):
+        self.setMode('MOVE')
+        self.odometer.update()
+        speedL = speed - omega * math.pi * self.odometer.track
+        speedR = speed + omega * math.pi * self.odometer.track
+        self.motors.speed(speedL, speedR)
+
     # Serial; Method will execute until the target turn angle is achieved
     def turnAngle(self, angleTarget, omegaTarget = math.pi / 12):
         self.odometer.update()
@@ -77,7 +86,6 @@ class MotionController:
             
     def reset(self):
         self.omegaPID.reset()
-##        self.odometer.resetTimer()
         self.odometer.resetEncoders()
         
     def setMode(self, mode):
