@@ -25,9 +25,9 @@ class Maze:
         # Return new node
         return newNode
 
-    def addPath(self, sourceNode, node, outHeading, inHeading, length):
-        newPath = Path(sourceNode, node, outHeading, inHeading)
-        self.g.add_edge(sourceNode, node, newPath, weight = length)
+    def addPath(self, fromNode, toNode, outHeading, inHeading, length):
+        newPath = Path(fromNode, toNode, outHeading, inHeading)
+        self.g.add_edge(fromNode, toNode, newPath, weight = length)
 
     def areNeighbors(self, node1, node2):
         for neighbor in self.g.neighbors(node1):
@@ -37,28 +37,35 @@ class Maze:
                 areNeighbors = False
         return areNeighbors
 
-    def explPathToNode(self, sourceNode, x, y, nbPathsOut, pathLength, start = False, finish = False):
+    # Method to be called when exploring the maze. It will create a new node at position x, y if it does
+    # not already exists. It will create a path object from the source node to the current node position.
+    # 
+    def exploreNode(self, sourceNode, x, y, nbPathsOut, pathLength, outHeading, inHeading, start = False, finish = False):
         # Check if already exists
         if self.nodeExistsAtPos(x, y):
-            node = self.getNodeAtPos(x, y)
-            print "Current node: ", node.uid, " (existing)"
+            currentNode = self.getNodeAtPos(x, y)
+            print "Current node: ", currentNode.uid, " (existing)"
             # Check if path loops back to sourceNode
-            if node == sourceNode:
-                if node.nbPathsOut <= 1:
-                    node.nbPathsOut = 0
+            if currentNode == sourceNode:
+                if currentNode.nbPathsOut <= 1:
+                    currentNode.nbPathsOut = 0
                 else:
-                    node.nbPathsOut -= 1
-                print "Loop to self, reducing nbPathsOut for node ", node.uid, " to ", node.nbPathsOut
+                    currentNode.nbPathsOut -= 1
+                print "Loop to self, reducing nbPathsOut for node ", currentNode.uid, " to ", currentNode.nbPathsOut
         else:
             # Create new node
-            node = self.addNode(nbPathsOut, sourceNode, start, finish)
-            node.setPos(x, y)
-            print "Current node: ", node.uid, " (new)"
+            currentNode = self.addNode(nbPathsOut, sourceNode, start, finish)
+            currentNode.setPos(x, y)
+            print "Current node: ", currentNode.uid, " (new)"
         # Create path edge from sourceNode to node
-        self.addPath(sourceNode, node, "N", "N", pathLength)
-        # set incoming heading to incoming path
-        return node  
+        self.addPath(sourceNode, currentNode, outHeading, inHeading, pathLength)
+        return currentNode  
 
+    def getHeadingToGoal(self, currentNode, goalNode):
+        nextNode = self.getNextNodeInShortestPath(currentNode, goalNode)
+        nextPath = self.getPathToNeighbor(currentNode, nextNode)
+        heading = nextPath.getHeadingToNode(nextNode)
+    
     def getNewNodeUid(self):
         uid = self.newNodeUid
         self.newNodeUid += 1
@@ -77,6 +84,13 @@ class Maze:
         print "Distance to nearest node with unvisited paths: ", shortestLength
         return nearestUnvisited
 
+    def getNextNodeInShortestPath(self, currentNode, goalNode):
+        path = nx.shortext_path(self.g, currentNode, goalNode, weight = 'weight')
+        if len(path) ==1:
+            return path[0]
+        else:
+            return path[1]
+    
     # Finds the next node in the path to the nearest node with unvisited paths
     def getNextNodeToNearestUnvisited(self, currentNode):
         nearestUnvisited = self.getNearestUnvisited(currentNode)
@@ -98,18 +112,14 @@ class Maze:
             if node.uid == uid:
                 return node
 
-    def getPathToNeighbor(self, fromNode, toNode):
-        if self.areNeighbors(fromNode, toNode):
-            paths = self.g[fromNode][toNode].items()
-            shortestLength = self.farAway
-            for path in paths:
-                if path[1]['weight'] < shortestLength:
-                    shortestPath = path[0]
-                    shortestLength = path[1]['weight']
-            return shortestPath
-        else:
-            print "Nodes ", fromNode.uid, "and", toNode.uid, "are not neighbors"
-            return None
+    def getPathToNeighbor(self, currentNode, neighborNode):
+        paths = self.g[currentNode][neighborNode].items()
+        shortestLength = self.farAway
+        for path in paths:
+            if path[1]['weight'] < shortestLength:
+                shortestPath = path[0]
+                shortestLength = path[1]['weight']
+        return shortestPath
 
     def nodeExistsAtPos(self, x, y):
         for node in self.g.nodes():
