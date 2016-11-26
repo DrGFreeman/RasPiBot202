@@ -39,7 +39,6 @@ class Maze:
 
     # Method to be called when exploring the maze. It will create a new node at position x, y if it does
     # not already exists. It will create a path object from the source node to the current node position.
-    # 
     def exploreNode(self, sourceNode, x, y, nbPathsOut, pathLength, outHeading, inHeading, start = False, finish = False):
         # Check if already exists
         if self.nodeExistsAtPos(x, y):
@@ -64,7 +63,7 @@ class Maze:
     def getHeadingToGoal(self, currentNode, goalNode):
         nextNode = self.getNextNodeInShortestPath(currentNode, goalNode)
         nextPath = self.getPathToNeighbor(currentNode, nextNode)
-        heading = nextPath.getHeadingToNode(nextNode)
+        return nextPath.getHeadingToNode(nextNode)
     
     def getNewNodeUid(self):
         uid = self.newNodeUid
@@ -75,7 +74,7 @@ class Maze:
     def getNearestUnvisited(self, currentNode):
         shortestLength = self.farAway
         for node in self.g.nodes():
-            if len(self.g.neighbors(node)) < node.nbPathsOut + 1:
+            if self.g.degree(node) < node.nbPathsOut + 1:
                 length = nx.shortest_path_length(self.g, currentNode, node, weight = 'weight')
                 print "Length to node ", node.uid, ": ", length
                 if length < shortestLength:
@@ -84,8 +83,9 @@ class Maze:
         print "Distance to nearest node with unvisited paths: ", shortestLength
         return nearestUnvisited
 
+
     def getNextNodeInShortestPath(self, currentNode, goalNode):
-        path = nx.shortext_path(self.g, currentNode, goalNode, weight = 'weight')
+        path = nx.shortest_path(self.g, currentNode, goalNode, weight = 'weight')
         if len(path) ==1:
             return path[0]
         else:
@@ -120,6 +120,24 @@ class Maze:
                 shortestPath = path[0]
                 shortestLength = path[1]['weight']
         return shortestPath
+
+    def hasUnvisitedPaths(self):
+        hasUnvisitedPaths = False
+        for node in self.g.nodes():
+            if self.g.degree(node) < node.nbPathsOut + 1:
+                hasUnvisitedPaths = True
+        return hasUnvisitedPaths
+
+    def headingIsUnvisited(self, currentNode, heading):
+        visitedHeadings = []
+        for node in self.g.neighbors(currentNode):
+		paths = self.g[currentNode][node].items()
+		for path in paths:
+		    visitedHeadings.append(path[0].getHeadingToNode(node))
+	headingIsUnvisited = True
+	if visitedHeadings.count(heading) == 1:
+            headingIsUnvisited = False
+        return headingIsUnvisited
 
     def nodeExistsAtPos(self, x, y):
         for node in self.g.nodes():
@@ -156,10 +174,10 @@ class Node:
 class Path:
 
     def __init__(self, nodeFrom, nodeTo, nodeFromOutHeading, nodeToInHeading):
-        self.node1 = nodeFrom
-        self.node1OutHeading = nodeFromOutHeading
-        self.node2 = nodeTo
-        self.node2OutHeading = self.inverseHeading(nodeToInHeading)
+        self.node0 = nodeFrom
+        self.node0OutHeading = nodeFromOutHeading
+        self.node1 = nodeTo
+        self.node1OutHeading = self.inverseHeading(nodeToInHeading)
         
     def inverseHeading(self, heading):
         inHeading = ['E', 'N', 'W', 'S']
@@ -167,8 +185,8 @@ class Path:
         return outHeading[inHeading.index(heading)]
 
     def getHeadingToNode(self, node):
-        if node == self.node1:
-            return self.node2OutHeading
-        elif node  == self.node2:
+        if node == self.node0:
             return self.node1OutHeading
+        elif node  == self.node1:
+            return self.node0OutHeading
         
