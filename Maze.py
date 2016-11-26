@@ -171,6 +171,9 @@ class Node:
         self.x = x
         self.y = y
 
+    def getPos():
+        return self.x, self.y
+
 class Path:
 
     def __init__(self, nodeFrom, nodeTo, nodeFromOutHeading, nodeToInHeading):
