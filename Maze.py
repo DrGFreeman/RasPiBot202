@@ -11,7 +11,7 @@ class Maze:
         self.distTol = 20 # Distance tolerance to consider two nodes to be the same
         self.farAway = 10000 # A long distance...
 
-    def addNode(self, nbPathsOut = 0, sourceNode = None, start = False, finish = False,):
+    def addNode(self, nbPathsOut = 0, start = False, finish = False,):
         uid = self.getNewNodeUid()
         # Create intersection node object
         newNode = Node(uid, nbPathsOut, start, finish)
