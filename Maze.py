@@ -53,7 +53,7 @@ class Maze:
                 print "Loop to self, reducing nbPathsOut for node ", currentNode.uid, " to ", currentNode.nbPathsOut
         else:
             # Create new node
-            currentNode = self.addNode(nbPathsOut, sourceNode, start, finish)
+            currentNode = self.addNode(nbPathsOut, start, finish)
             currentNode.setPos(x, y)
             print "Current node: ", currentNode.uid, " (new)"
         # Create path edge from sourceNode to node
