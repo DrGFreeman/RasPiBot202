@@ -61,7 +61,7 @@ class MotionController:
         self.turnToAngle(phi0 + angleTarget, omegaTarget)
 
     # Serial; Method will execute until the target angle is reached
-    def turnToAngle(self, angleTarget, omegaTarget = math.pi / 12):
+    def turnToAngle(self, angleTarget, omegaTarget = math.pi / 18):
         self.setMode('TURN')
         omegaMax = math.pi / 6.
         omegaMin = math.pi / 36.
