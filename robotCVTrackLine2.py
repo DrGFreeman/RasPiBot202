@@ -27,7 +27,7 @@ try:
     time.sleep(.5)
 
 ##  Initialization of turn and speed variables
-    targetSpeed = 550  # Forward speed target (straight line)
+    targetSpeed = 450  # Forward speed target (straight line)
 
 
 ##  Main loop time step
