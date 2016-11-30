@@ -16,6 +16,14 @@ def turnToHeading(heading):
 def uTurn(currentHeading):
     rpb202.motionCtrl.turnToAngle(headingToAngle(currentHeading) + pi)
 
+def forward(speed, time):
+    timer = Timer()
+    loopTimer = Timer()
+    while timer.isWithin(time):
+        rpb202.motionCtrl.move(speed, 0)
+        loopTimer.sleepToElapsed(timeStep)
+        
+
 ##  Follow line to next intersection. Return intersection type:  
     # 1 = path to left
     # 2 = path forward
@@ -25,7 +33,28 @@ def uTurn(currentHeading):
     # 8 = finish
     # Will never return 2 (straight != intersection)
 def followLineToInt(speed):
-    intersection = 0
+
+    omegaPID.reset()
+    loopTimer = Timer()
+
+    ##  Follow line until intersection is found
+    while lineTracker.getIntersection() == 2:
+
+        ##  Get turn rate from PID controller
+        omega = -omegaPID.getOutput(0, lineTracker.getBtmHPos(), timeStep)
+        rpb202.motionCtrl.move(speed, omega)
+
+        loopTimer.sleepToElapsed(timeStep)
+
+    print lineTracker.getIntersection()
+    ##  Move forward slightly to ensure proper intersection detection
+    forward(speed, tRead)
+    intersection = lineTracker.getIntersection()
+
+    ##  Move to center of intersection
+    forward(speed, tInt)
+    rpb202.stop()
+    
     return intersection
 
 ########################################################################
@@ -133,14 +162,16 @@ omegaPID = PID(Kp, Ki, Kd)
 fps = 20.
 timeStep = 1 / fps
 
-##rpb202 = robotBuilder.build(Camera = True)
-rpb202 = robotBuilder.build()
+rpb202 = robotBuilder.build(True)
+rpb202.motionCtrl.setTimeStep(timeStep)
+time.sleep(1)  # Let time for camera self ajustment
+##rpb202 = robotBuilder.build()  # Dummy line for testing
 
+##  Pointer to odometer
 odometer = rpb202.odometer
 
-##lineTracker = rpb202.camera.linetrackerBox
-##lineTracker.trackLines(fps)
-##time.sleep(.5)
+lineTracker = rpb202.camera.lineTrackerBox
+lineTracker.trackLines(fps)
 
 maze = Maze()
 startNode = maze.addNode(0, start = True)
@@ -151,6 +182,19 @@ x, y, length = 0., 0., 0.
 heading = 'E'
 outHeading = heading
 newPath = True
+
+#####################
+####  Testing...
+##
+##try:
+##
+##    while True:
+##        speed = float(raw_input("speed: "))
+##        tRead = float(raw_input("read int time: "))
+##        tInt = float(raw_input("int time: ")) - tRead
+##
+##        print followLineToInt(speed)
+##
 
 try:
 
@@ -165,12 +209,12 @@ try:
         ##  Move to next corner/intersection
         prevNode = currNode
 ##        inter = followLineToInt(speed)
-        inter = 5
+        inter = 5 # Dummy line for testing
 
         ##  Update pseudo odometry
         odometer.update()
 ##        dx, dy = odometer.getPosXY()
-        dx, dy = 103, 10
+        dx, dy = 103, 10 # Dummy line for testing
         x, y, dist = correctedPos(x, y, dx, dy, heading)
         length += dist
         
@@ -247,6 +291,6 @@ try:
 except KeyboardInterrupt:
 
     rpb202.stop()
-##    rpb202.camera.stop()
-##    lineTracker.stop()
+    rpb202.camera.stop()
+    lineTracker.stop()
     print "\nExiting program"
