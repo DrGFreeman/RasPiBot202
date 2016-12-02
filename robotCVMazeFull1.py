@@ -45,15 +45,15 @@ def followLineToInt(speed):
         rpb202.motionCtrl.move(speed, omega)
 
         loopTimer.sleepToElapsed(timeStep)
+    rpb202.motionCtrl.stop()
 
-    print lineTracker.getIntersection()
     ##  Move forward slightly to ensure proper intersection detection
-    forward(speed, tRead)
+    rpb202.motionCtrl.forwardDist(200, 40)
     intersection = lineTracker.getIntersection()
 
     ##  Move to center of intersection
-    forward(speed, tInt)
-    rpb202.stop()
+    rpb202.motionCtrl.forwardDist(150, 220)
+    rpb202.motionCtrl.stop()
     
     return intersection
 
@@ -153,7 +153,7 @@ def nbPathsOut(intersection):
 ########################################################################
 ##  Initialize variables
 
-speed = 250
+speed = 300
 Kp = .2
 Ki = .03
 Kd = 0.
@@ -190,11 +190,11 @@ newPath = True
 ##
 ##    while True:
 ##        speed = float(raw_input("speed: "))
-##        tRead = float(raw_input("read int time: "))
-##        tInt = float(raw_input("int time: ")) - tRead
+##        dRead = float(raw_input("read int dist: "))
+##        dInt = float(raw_input("int dist: ")) - dRead
 ##
 ##        print followLineToInt(speed)
-##
+
 
 try:
 
@@ -208,13 +208,13 @@ try:
 
         ##  Move to next corner/intersection
         prevNode = currNode
-##        inter = followLineToInt(speed)
-        inter = 5 # Dummy line for testing
+        inter = followLineToInt(speed)
+##        inter = 5 # Dummy line for testing
 
         ##  Update pseudo odometry
         odometer.update()
-##        dx, dy = odometer.getPosXY()
-        dx, dy = 103, 10 # Dummy line for testing
+        dx, dy = odometer.getPosXY()
+##        dx, dy = 103, 10 # Dummy line for testing
         x, y, dist = correctedPos(x, y, dx, dy, heading)
         length += dist
         
@@ -249,7 +249,7 @@ try:
             ##  If moving to a previously visited node
             else:
                 currNode = maze.getNodeAtPos(x, y)
-                x, y = currNode.getPos(x, y)
+                x, y = currNode.getPos()
 
             ##  Find next node with unvisited path and next heading
             nextNode = maze.getNextNodeToNearestUnvisited(currNode)
@@ -284,13 +284,13 @@ try:
 
 
     ##  End of main loop, stop robot and threads
-    rpb202.stop()
-##    rpb202.camera.stop()
-##    lineTracker.stop()
+    rpb202.motionCtrl.stop()
+    rpb202.camera.stop()
+    lineTracker.stop()
 
 except KeyboardInterrupt:
 
-    rpb202.stop()
+    rpb202.motionCtrl.stop()
     rpb202.camera.stop()
     lineTracker.stop()
     print "\nExiting program"
