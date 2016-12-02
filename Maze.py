@@ -8,7 +8,7 @@ class Maze:
         self.newNodeUid = 0
         self.startNode = None
         self.finishNode = None
-        self.distTol = 20 # Distance tolerance to consider two nodes to be the same
+        self.distTol = 75 # Distance tolerance to consider two nodes to be the same
         self.farAway = 10000 # A long distance...
 
     def addNode(self, nbPathsOut = 0, start = False, finish = False,):
@@ -171,7 +171,7 @@ class Node:
         self.x = x
         self.y = y
 
-    def getPos():
+    def getPos(self):
         return self.x, self.y
 
 class Path:
