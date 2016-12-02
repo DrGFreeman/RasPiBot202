@@ -10,8 +10,8 @@ class Robot:
     def __init__(self):
         self.aStar = AStar()
         self.encoders = Encoders(self.aStar)
-        self.motors = Motors(self.aStar, self.encoders)
         self.odometer = Odometer(self.encoders)
+        self.motors = Motors(self.aStar, self.encoders, self.odometer)
         self.motionCtrl = MotionController(self.odometer, self.motors)
         self.sensors = []
         self.buttons = []

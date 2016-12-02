@@ -1,26 +1,29 @@
-import math
 import threading
 import time
-
+from math import pi, sqrt
 from Timer import Timer
 from PID import PID
 
 
 class MotionController:
 
-    def __init__(self, odometer, motors, timeStep = .05):
+    def __init__(self, odometer, motors, timeStep = .025):
         self.timeStep = timeStep
         self.odometer = odometer
         self.odometer.timeStep = self.timeStep
         self.motors = motors
-        self.motors.timeStep = self.timeStep
         self.omegaPID = PID()
+        self.targetV = 0
+        self.targetOmega = 0
         self.mode = "STOPPED"
+        self.move()
         
-
+########################################################################
+##  Movement control methods
+########################################################################
+        
     # Serial; Method will execute until the target distance is reached
-    def forwardDist(self, speed, distTarget, decel = True):
-        self.odometer.update()
+    def forwardDist(self, speed, distTarget, stop = True, decel = True):
         phi0 = self.odometer.getPhi()
         x0, y0 = self.odometer.getPosXY()
         dist = 0
@@ -30,7 +33,7 @@ class MotionController:
                 self.forwardAngle(speed, phi0)
                 loopTimer.sleepToElapsed(self.timeStep)
                 x1, y1 = self.odometer.getPosXY()
-                dist = math.sqrt((x1 - x0)**2 + (y1 - y0)**2)
+                dist = sqrt((x1 - x0)**2 + (y1 - y0)**2)
                 if distTarget - dist < 50 and speed > 75:
                     speed = speed / 1.3
         else:
@@ -38,43 +41,38 @@ class MotionController:
                 self.forwardAngle(speed, phi0)
                 loopTimer.sleepToElapsed(self.timeStep)
                 x1, y1 = self.odometer.getPosXY()
-                dist = math.sqrt((x1 - x0)**2 + (y1 - y0)**2)
-        self.stop()
-        self.odometer.update()
+                dist = sqrt((x1 - x0)**2 + (y1 - y0)**2)
+        if stop:
+            self.stop()
         
     # In-loop; Need to call this method within a loop with a short time step
-    # in order for the odometer to update and the PID to adjust the angle.
+    # in order for the PID to adjust the turn rate (targetOmega).
     def forwardAngle(self, speed, angleTarget):
         self.setMode('FORWARD')
         self.odometer.update()
-        omega = self.omegaPID.getOutput(0, -self.odometer.angleRelToPhi(angleTarget), self.timeStep)
-        speedL = speed - omega * math.pi * self.odometer.track
-        speedR = speed + omega * math.pi * self.odometer.track
-        self.motors.speed(speedL, speedR)
+        self.targetSpeed = speed
+        self.targetOmega = self.omegaPID.getOutput(0, -self.odometer.angleRelToPhi(angleTarget), self.timeStep)
 
-    # In-loop; Need to call this method within a loop with a short time step
-    # in order for the odometer to update and the PID to adjust the angle.
-    def move(self, speed, omega):
-        self.setMode('MOVE')
-        self.odometer.update()
-        speedL = speed - omega * math.pi * self.odometer.track
-        speedR = speed + omega * math.pi * self.odometer.track
-        self.motors.speed(speedL, speedR)
+    # Stops the movement
+    def stop(self):
+        self.targetV = 0
+        self.targetOmega = 0
 
     # Serial; Method will execute until the target turn angle is achieved
-    def turnAngle(self, angleTarget, omegaTarget = math.pi / 12):
-        self.odometer.update()
+    def turnAngle(self, angleTarget, omegaTarget = pi / 12):
         phi0 = self.odometer.getPhi()
         self.turnToAngle(phi0 + angleTarget, omegaTarget)
 
     # Serial; Method will execute until the target angle is reached
-    def turnToAngle(self, angleTarget, omegaTarget = math.pi / 18):
+    def turnToAngle(self, angleTarget, omegaTarget = pi / 18):
         self.setMode('TURN')
-        omegaMax = math.pi / 6.
-        omegaMin = math.pi / 36.
-        self.odometer.update()
+        self.targetV = 0
+        self.targetOmega = 0
+        omegaMax = pi / 6.
+        omegaMin = pi / 36.
+        angleTol = pi/180.
         loopTimer = Timer()
-        while abs(self.odometer.angleRelToPhi(angleTarget)) > math.pi/180.:
+        while abs(self.odometer.angleRelToPhi(angleTarget)) > angleTol:
             omega = self.omegaPID.getOutput(0, -self.odometer.angleRelToPhi(angleTarget), self.timeStep)
             if omega > omegaMax:
                 omega = omegaMax
@@ -84,21 +82,42 @@ class MotionController:
                 omega = omegaMin
             elif omega < 0 and omega > -omegaMin:
                 omega = -omegaMin
-            speedL = -omega * math.pi * self.odometer.track
-            speedR = omega * math.pi * self.odometer.track
+            self.targetOmega = omega
+            loopTimer.sleepToElapsed(self.timeStep)
+        self.stop()
+
+########################################################################
+##  Other methods
+########################################################################
+
+    # Kill thread running ._move() method
+    def kill(self):
+        self.active = False
+
+    # This method runs continuously until self.active is set to false.
+    # It looks for targetV and targetOmega values, provides corresponding
+    # speed commands to the motors and updates the odometer at every pass
+    # of the loop.
+    def _move(self):
+        loopTimer = Timer()
+        while self.active:
+            speedL = self.targetV - self.targetOmega * pi * self.odometer.track
+            speedR = self.targetV + self.targetOmega * pi * self.odometer.track
             self.motors.speed(speedL, speedR)
             loopTimer.sleepToElapsed(self.timeStep)
             self.odometer.update()
-        self.stop()
-            
-    def reset(self):
-        self.omegaPID.reset()
-        self.odometer.resetEncoders()
-        
+
+    # Starts the ._move() method in a thread
+    def move(self):
+        self.active = True
+        th = threading.Thread(target = self._move, args = [])
+        th.start()
+
+    # Sets the omegaPID constants for specific movement modes               
     def setMode(self, mode):
         if self.mode != mode:
             self.mode = mode
-            self.reset()
+            self.omegaPID.reset()
             # Set PID constants for specific mode
             if mode == 'FORWARD':
                 self.omegaPID.setKs(.41, 0, 0)
@@ -108,8 +127,3 @@ class MotionController:
     def setTimeStep(self, timeStep):
         self.timeStep = timeStep
         self.odometer.timeStep = timeStep
-        self.motors.timeStep = timeStep
-
-    def stop(self):
-        self.motors.stop()
-        self.setMode('STOPPED')
