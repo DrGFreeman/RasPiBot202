@@ -7,7 +7,7 @@ from PID import PID
 
 class MotionController:
 
-    def __init__(self, odometer, motors, timeStep = .025):
+    def __init__(self, odometer, motors, timeStep = .05):
         self.timeStep = timeStep
         self.odometer = odometer
         self.odometer.timeStep = self.timeStep
@@ -23,7 +23,7 @@ class MotionController:
 ########################################################################
         
     # Serial; Method will execute until the target distance is reached
-    def forwardDist(self, speed, distTarget, stop = True, decel = True):
+    def forwardDist(self, speed, distTarget, stop = True, decel = False):
         phi0 = self.odometer.getPhi()
         x0, y0 = self.odometer.getPosXY()
         dist = 0
@@ -49,9 +49,13 @@ class MotionController:
     # in order for the PID to adjust the turn rate (targetOmega).
     def forwardAngle(self, speed, angleTarget):
         self.setMode('FORWARD')
-        self.odometer.update()
-        self.targetSpeed = speed
-        self.targetOmega = self.omegaPID.getOutput(0, -self.odometer.angleRelToPhi(angleTarget), self.timeStep)
+        omega = self.omegaPID.getOutput(0, -self.odometer.angleRelToPhi(angleTarget), self.timeStep)
+        self.setSpeed(speed, omega)
+        
+    # Sets the target forward & rotational speeds (v & omega)
+    def setSpeed(self, v, omega):
+        self.targetV = v
+        self.targetOmega = omega
 
     # Stops the movement
     def stop(self):
@@ -59,18 +63,18 @@ class MotionController:
         self.targetOmega = 0
 
     # Serial; Method will execute until the target turn angle is achieved
-    def turnAngle(self, angleTarget, omegaTarget = pi / 12):
+    def turnAngle(self, angleTarget, omegaTarget = pi):
         phi0 = self.odometer.getPhi()
         self.turnToAngle(phi0 + angleTarget, omegaTarget)
 
     # Serial; Method will execute until the target angle is reached
-    def turnToAngle(self, angleTarget, omegaTarget = pi / 18):
+    def turnToAngle(self, angleTarget, omegaTarget = pi):
         self.setMode('TURN')
         self.targetV = 0
         self.targetOmega = 0
-        omegaMax = pi / 6.
-        omegaMin = pi / 36.
-        angleTol = pi/180.
+        omegaMax = omegaTarget
+        omegaMin = pi / 6.
+        angleTol = pi/360.
         loopTimer = Timer()
         while abs(self.odometer.angleRelToPhi(angleTarget)) > angleTol:
             omega = self.omegaPID.getOutput(0, -self.odometer.angleRelToPhi(angleTarget), self.timeStep)
@@ -101,8 +105,8 @@ class MotionController:
     def _move(self):
         loopTimer = Timer()
         while self.active:
-            speedL = self.targetV - self.targetOmega * pi * self.odometer.track
-            speedR = self.targetV + self.targetOmega * pi * self.odometer.track
+            speedL = self.targetV - self.targetOmega * self.odometer.track / 2.
+            speedR = self.targetV + self.targetOmega * self.odometer.track / 2.
             self.motors.speed(speedL, speedR)
             loopTimer.sleepToElapsed(self.timeStep)
             self.odometer.update()
@@ -120,9 +124,10 @@ class MotionController:
             self.omegaPID.reset()
             # Set PID constants for specific mode
             if mode == 'FORWARD':
-                self.omegaPID.setKs(.41, 0, 0)
-            if mode == 'TURN':
                 self.omegaPID.setKs(1, 0, 0)
+##                self.omegaPID.setKs(.41, 0, 0)
+            if mode == 'TURN':
+                self.omegaPID.setKs(1.5, 0, 0)
 
     def setTimeStep(self, timeStep):
         self.timeStep = timeStep

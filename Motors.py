@@ -61,7 +61,6 @@ class Motors:
         self.setEncodersDir(cmdL, cmdR)
         # Command motors
         self.aStar.motors(cmdL * self.dirL * self.maxCmd, cmdR * self.dirR * self.maxCmd)
-        self.prevCmdL, self.prevCmdR = cmdL, cmdR
 
     def forward(self, cmd):
         self.aStar.motors(cmd * self.dirL * self.maxCmd, cmd * self.dirR * self.maxCmd)
@@ -74,16 +73,9 @@ class Motors:
     def reset(self):
         self.pidL.reset()
         self.pidR.reset()
-        self.lastCountL = 0
-        self.lastCountR = 0
-        self.speedL = 0
-        self.speedR = 0
 
     def stop(self):
         self.aStar.motors(0, 0)
-        self.prevCmdL = 0
-        self.prevCmdR = 0
-        self.reset()
 
     # Temporary fix to bypass defective pin B on left encoder
     def setEncodersDir(self, cmdL, cmdR):

@@ -43,4 +43,4 @@ class Robot:
         self.motors.cmd(speed - rotSpeed, speed + rotSpeed) 
 
     def stop(self):
-        self.motors.stop()
+        self.motionCtrl.stop()
