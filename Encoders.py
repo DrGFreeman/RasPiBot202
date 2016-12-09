@@ -8,9 +8,6 @@ class Encoders:
         self.countSignRight = 1
         self.aStar.reset_encoders()
 
-    def getCounts(self):
-        return self.countLeft, self.countRight
-
     def readCounts(self):
         countLeft, countRight = self.aStar.read_encoders()
         self.aStar.reset_encoders()
