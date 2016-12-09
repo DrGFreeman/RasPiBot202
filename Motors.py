@@ -38,6 +38,10 @@ class Motors:
             cmdR = -1
         elif cmdR > 1:
             cmdR = 1
+
+        # Ensure faster stop
+        if speedTargetL == 0 and speedTargetR == 0:
+            cmdL, cmdR = 0, 0
         
         # Temporary fix to bypass defective pin B on left encoder
         self.setEncodersDir(cmdL, cmdR)
