@@ -29,7 +29,7 @@ def relativeAngle(angleRef, angle):
 
 class Odometer:
 
-    def __init__(self, encoders, timeStep = .025):
+    def __init__(self, encoders, timeStep = .05):
         self.encoders = encoders
         self.timeStep = timeStep
         self.track = 141 # width between wheels in millimeters
