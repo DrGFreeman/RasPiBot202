@@ -1,4 +1,4 @@
-from a_star_rpb202 import AStar
+from AStarRPB202 import AStar
 from Encoders import *
 from MotionController import *
 from Motors import *
