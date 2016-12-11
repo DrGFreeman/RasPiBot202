@@ -1,3 +1,5 @@
+import sys
+sys.path.append("../")
 from Robot import Robot
 from Sensors import *
 import CV
