@@ -53,7 +53,7 @@ class ADistSens:
         else:
             return False
 
-class DDistSens:
+class DProxSens:
 
     def __init__(self, id, analog, aPin):
         self.id = id

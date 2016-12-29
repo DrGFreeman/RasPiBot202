@@ -1,8 +1,8 @@
 import threading
 import time
 from math import pi, sqrt
-from Timer import Timer
-from PID import PID
+from timer import Timer
+from pid import PID
 
 
 class MotionController:

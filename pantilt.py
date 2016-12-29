@@ -1,4 +1,4 @@
-from Servo import Servo
+from servo import Servo
 
 class PanTilt:
 

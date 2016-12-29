@@ -1,5 +1,5 @@
-from PID import PID
-from Encoders import Encoders
+from pid import PID
+from encoders import Encoders
 
 class Motors:
 

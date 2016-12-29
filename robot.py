@@ -1,10 +1,9 @@
-from AStarRPB202 import AStar
-from Encoders import *
-from MotionController import *
-from Motors import *
-from Odometer import *
-from PanTilt import *
-from Sensors import *
+from astarRPB202 import AStar
+from encoders import Encoders
+from motioncontroller import MotionController
+from motors import Motors
+from odometer import Odometer
+from pantilt import PanTilt
 
 class Robot:
 
