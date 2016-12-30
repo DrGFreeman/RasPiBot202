@@ -23,7 +23,7 @@ class WiiRemote:
         self.stickV = 0
 
         # Connection à la manette Wii
-        print "Appuyez simultamément les boutons 1 et 2 de la manette Wii maintenant"
+        print "Simultaneously press Wii remote buttons 1 and 2 now"
         i = 1
         while not self.wm:
             try:
@@ -32,10 +32,10 @@ class WiiRemote:
                 if i > 10:
                     quit()
                     break
-                print "Impossible de connecter le manette Wii"
+                print "Failed to connect to Wii remote"
                 print "Tentative " + str(i)
                 i += 1
-        print "Manette Wii connectée avec succès"
+        print "Wii remote successfully connected"
         self.wm.led = n
         self.wm.rumble = True
         time.sleep(.2)
@@ -73,7 +73,7 @@ class WiiRemote:
 
     def _release(self):
         self.active = False
-        print "Déconnection de la manette Wii\n"
+        print "Disconnecting Wii remote\n"
         self.wm.rumble = True
         time.sleep(.2)
         self.wm.rumble = False
