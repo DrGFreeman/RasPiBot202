@@ -142,8 +142,8 @@ class LineTracker:
 
 
             dt = time.time() - t0
-            if dt < 1 / freq:
-                time.sleep(1 / freq -dt)
+            if dt < 1. / freq:
+                time.sleep(1. / freq -dt)
 
     def trackLines(self, freq = 10):
         th = threading.Thread(target = self._trackLines, args = [freq])
@@ -281,8 +281,8 @@ class LineTrackerBox:
             self.intersection = intersection
 
             dt = time.time() - t0
-            if dt < 1 / freq:
-                time.sleep(1 / freq -dt)
+            if dt < 1. / freq:
+                time.sleep(1. / freq -dt)
 
     def trackLines(self, freq = 10):
         th = threading.Thread(target = self._trackLines, args = [freq])
@@ -366,8 +366,8 @@ class ObjTracker:
                 img.show()
 
             dt = time.time() - t0
-            if dt < 1 / freq:
-                time.sleep(1 / freq -dt)
+            if dt < 1. / freq:
+                time.sleep(1. / freq -dt)
 
     def trackObjByHue(self, hue, freq = 10):
         th = threading.Thread(target = self._trackObjByHue, args = (hue, freq))
