@@ -1,13 +1,14 @@
+import sys
+sys.path.append("../")
 import matplotlib.pyplot as plt
-import robotBuilder
-from Timer import Timer
+import robotbuilder
+from timer import Timer
 
 
-r = robotBuilder.build()
-m = r.motors
+r = robotbuilder.build()
 
-t = Timer()
-l = Timer()
+t = Timer() # Excecution timer
+l = Timer() # Loop timer
 
 left = []
 right = []
@@ -20,15 +21,14 @@ try:
     go = True
     while t.isWithin(7):
 
-        if t.isWithin(2.5):
+        if t.isWithin(6):
             r.motionCtrl.setSpeed(250, 0)
-        elif t.isWithin(5):
+        elif t.isWithin(4):
             r.motionCtrl.move(325, 0)
         elif t.isWithin(6):
             r.motionCtrl.move(200, 0)
-        elif go:
+        else:
             r.motionCtrl.stop()
-            go = False
             
         l.sleepToElapsed(.05)
 

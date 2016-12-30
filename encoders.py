@@ -5,7 +5,7 @@ class Encoders:
         self.countLeft = 0
         self.countRight = 0
         self.countSignLeft = 1
-        self.countSignRight = 1
+        self.countSignRight = -1
         self.aStar.reset_encoders()
 
     def readCounts(self):

@@ -33,7 +33,7 @@ class Odometer:
         self.encoders = encoders
         self.timeStep = timeStep
         self.track = 141 # width between wheels in millimeters
-        self.tickDist = .32938 # Distance travelled for per encoder click in millimeters
+        self.tickDist = .32938 / 2 # Distance travelled for per encoder click in millimeters
         self.lastCountLeft = 0
         self.lastCountRight = 0
         self.speedL = 0

@@ -3,21 +3,9 @@
 #include <PololuRPiSlave.h>
 #include <FastGPIO.h>
 
-/* This example program shows how to make the A-Star 32U4 Robot
- * Controller into a Raspberry Pi I2C slave.  The RPi and A-Star can
- * exchange data bidirectionally, allowing each device to do what it
- * does best: high-level programming can be handled in a language such
- * as Python on the RPi, while the A-Star takes charge of motor
- * control, analog inputs, and other low-level I/O.
- *
- * The example and libraries are available for download at:
+/* Modified from example available for download at:
  *
  * https://github.com/pololu/pololu-rpi-slave-arduino-library
- *
- * You will need the corresponding Raspberry Pi code, which is
- * available in that repository under the pi/ subfolder.  The Pi code
- * sets up a simple Python-based web application as a control panel
- * for your Raspberry Pi robot.
  */
 
 // Custom data structure that we will use for interpreting the buffer.
@@ -50,26 +38,45 @@ AStar32U4ButtonB buttonB;
 AStar32U4ButtonC buttonC;
 
 // Encoders variables
-const byte encoderLeftPin = 8;
-const byte encoderRightPin = 7;
-volatile uint16_t encoderLeftCount;
-volatile uint16_t encoderRightCount;
+const byte encoderLeftPinA = 8;    // PCINT4
+const byte encoderLeftPinB = 16;   // PCINT2
+const byte encoderRightPinA = 7;   // INT6
+const byte encoderRightPinB = 1;   // INT3
+
+static volatile bool lastLeftA;
+static volatile bool lastLeftB;
+static volatile bool lastRightA;
+static volatile bool lastRightB;
+
+volatile int16_t encoderLeftCount;
+volatile int16_t encoderRightCount;
 
 // ISRs
-// ISR for left encoder (PCINT)
+// ISR for left encoder pins A & B (PCINT4, 2)
 ISR(PCINT0_vect)
 {
-  encoderLeftCount++;
+  bool newLeftA = FastGPIO::Pin<encoderLeftPinA>::isInputHigh();
+  bool newLeftB = FastGPIO::Pin<encoderLeftPinB>::isInputHigh();
+
+  encoderLeftCount += (newLeftA ^ lastLeftB) - (lastLeftA ^ newLeftB);
+
+  lastLeftA = newLeftA;
+  lastLeftB = newLeftB;
 }
 
-// ISR for right encoder (INT)
 static void rightISR()
 {
-  encoderRightCount++;
+  bool newRightA = FastGPIO::Pin<encoderRightPinA>::isInputHigh();
+  bool newRightB = FastGPIO::Pin<encoderRightPinB>::isInputHigh();
+
+  encoderRightCount += (newRightA ^ lastRightB) - (lastRightA ^ newRightB);
+
+  lastRightA = newRightA;
+  lastRightB = newRightB;
 }
 
 void setup()
-{
+{  
   // Set up the slave at I2C address 20.
   slave.init(20);
 
@@ -77,12 +84,24 @@ void setup()
   buzzer.play("v10>>g16>>>c16");
 
   // Setup encoders pins and attach ISRs
-  FastGPIO::Pin<encoderLeftPin>::setInputPulledUp();
-  FastGPIO::Pin<encoderRightPin>::setInputPulledUp();
+  FastGPIO::Pin<encoderLeftPinA>::setInputPulledUp();
+  FastGPIO::Pin<encoderLeftPinB>::setInputPulledUp();
+  FastGPIO::Pin<encoderRightPinA>::setInputPulledUp();
+  FastGPIO::Pin<encoderRightPinB>::setInputPulledUp();
+  PCMSK0 |= bit(PCINT4);
+  PCMSK0 |= bit(PCINT2);
+  PCIFR = (1 << PCIF0);
   PCICR = (1 << PCIE0);
-  PCMSK0 = (1 << PCINT4);
-  PCIFR = (1 << PCIF0); 
-  attachInterrupt(digitalPinToInterrupt(encoderRightPin), rightISR, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(encoderRightPinA), rightISR, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(encoderRightPinB), rightISR, CHANGE);
+
+  // Initialize encoders variables
+  lastLeftA = FastGPIO::Pin<encoderLeftPinA>::isInputHigh();
+  lastLeftB = FastGPIO::Pin<encoderLeftPinB>::isInputHigh();
+  encoderLeftCount = 0;
+  lastRightA = FastGPIO::Pin<encoderRightPinA>::isInputHigh();
+  lastRightB = FastGPIO::Pin<encoderRightPinB>::isInputHigh();
+  encoderRightCount = 0;
 }
 
 void loop()
