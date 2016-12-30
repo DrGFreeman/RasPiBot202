@@ -1,6 +1,6 @@
 from robot import Robot
 from sensors import *
-import cv
+
 
 def build(camera = False):
 
@@ -28,6 +28,7 @@ def build(camera = False):
     robot.addSensor(irARightOut)
 
     if camera:
-        robot.addCamera(CV.Camera())
+        import cv
+        robot.addCamera(cv.Camera())
 
     return robot
