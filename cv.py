@@ -2,6 +2,7 @@ import threading
 import time
 
 import SimpleCV
+import timer
 
 class Camera:
 
@@ -31,7 +32,7 @@ class Camera:
             if dt < 1 / freq:
                 time.sleep(1 / freq -dt)
 
-    def show(self, freq = 10):
+    def show(self, freq = 20):
         th = threading.Thread(target = self._show, args = [freq])
         th.start()
 
@@ -62,8 +63,8 @@ class LineTracker:
 ##          Resize and crop image (crop values pixel values apply before resize)
             topCrop = 256
             botCrop = 0
-            leftCrop = 64
-            rightCrop = 64
+            leftCrop = 0
+            rightCrop = 0
             img = img.crop(leftCrop, topCrop, img.width - leftCrop - rightCrop, img.height - topCrop - botCrop)
             img = img.resize(w = 200)
 
@@ -202,18 +203,18 @@ class LineTrackerBox:
     def _trackLines(self, freq):
 
         self.active = True
+        lTimer = Timer()
 
         while self.active:
-
-            t0 = time.time()
 
             img = self.camera.getImage()
     
             ##  Resize and crop image (crop values pixel values apply before resize)
             topCrop = 256
             botCrop = 0
-            leftCrop = 64
-            rightCrop = 64
+            leftCrop = 0
+            rightCrop = 0
+            ## Crop before resize to avoid SimpleCV bug
             img = img.crop(leftCrop, topCrop, img.width - leftCrop - rightCrop, img.height - topCrop - botCrop)
             img = img.resize(w = 256)
 
@@ -222,10 +223,10 @@ class LineTrackerBox:
 
             ##  Isolate zone images
             cWidth = 8
-            imgTop = iBin.crop((cWidth, 0), (256 - cWidth, cWidth))
-            imgBtm = iBin.crop((0, 112 - cWidth), (256, 112))
-            imgLeft = iBin.crop((0, 0), (cWidth, 112 - cWidth))
-            imgRight = iBin.crop((256 - cWidth, 0), (256, 104))
+            imgTop = iBin.crop((cWidth, 0), (img.width - cWidth, cWidth))
+            imgBtm = iBin.crop((0, img.height - cWidth), (img.width, img.height))
+            imgLeft = iBin.crop((0, 0), (cWidth, img.height - cWidth))
+            imgRight = iBin.crop((img.width - cWidth, 0), (img.width, img.height - cWidth))
 
             ##  Reset intersection configuration
             intersection = 0
@@ -236,7 +237,7 @@ class LineTrackerBox:
                 blobsBtm = blobsBtm.sortArea()
                 self.btm = True
                 x, y = blobsBtm[0].centroid()
-                self.btmHPos = (256 / 2 - x) / (256 / 2)
+                self.btmHPos = (imgBtm.width / 2. - x) / (imgBtm.width / 2.)
                 self.btmAreaRatio = blobsBtm[0].area() / float(imgBtm.area())
             else:
                 self.btm = False
@@ -280,11 +281,9 @@ class LineTrackerBox:
 
             self.intersection = intersection
 
-            dt = time.time() - t0
-            if dt < 1. / freq:
-                time.sleep(1. / freq -dt)
+            lTimer.sleepToElapsed(1. / freq)
 
-    def trackLines(self, freq = 10):
+    def trackLines(self, freq = 20):
         th = threading.Thread(target = self._trackLines, args = [freq])
         th.start()
 
