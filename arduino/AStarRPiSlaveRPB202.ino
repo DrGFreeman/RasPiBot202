@@ -41,7 +41,7 @@ AStar32U4ButtonC buttonC;
 const byte encoderLeftPinA = 8;    // PCINT4
 const byte encoderLeftPinB = 16;   // PCINT2
 const byte encoderRightPinA = 7;   // INT6
-const byte encoderRightPinB = 1;   // INT3
+const byte encoderRightPinB = 0;   // INT2
 
 static volatile bool lastLeftA;
 static volatile bool lastLeftB;
@@ -64,6 +64,7 @@ ISR(PCINT0_vect)
   lastLeftB = newLeftB;
 }
 
+// ISR for right encoder pins A & B (INT6 & INT2)
 static void rightISR()
 {
   bool newRightA = FastGPIO::Pin<encoderRightPinA>::isInputHigh();
