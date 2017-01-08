@@ -12,8 +12,8 @@ class Motors:
         self.dirL = 1 * self.trimL
         self.dirR = 1 * self.trimR
         self.maxCmd = 400
-        self.pidL = PID(.25, 4)#PID(.7, 6)
-        self.pidR = PID(.25, 4)#PID(.7, 5.5)
+        self.pidL = PID(.7, 5)#PID(.25, 4)#PID(.7, 6)
+        self.pidR = PID(.7, 5)#PID(.25, 4)#PID(.7, 5.5)
         self.speedCst = 900. # Approximate speed (in mm/s) for unit command
 
         
@@ -77,5 +77,6 @@ class Motors:
 
     def stop(self):
         self.aStar.motors(0, 0)
+        self.reset()
         
         
