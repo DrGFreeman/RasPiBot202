@@ -17,7 +17,7 @@ class Robot:
         self.buttons = []
         self.analog = [0, 0, 0, 0, 0, 0]
         self.camera = []
-        self.panTilt = PanTilt(12, 18)
+        self.panTilt = PanTilt(12, 13)
 
     def addSensor(self, sensorObj):
         self.sensors.append(sensorObj)
