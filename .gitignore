@@ -4,3 +4,5 @@ deprecated/
 clean_pyc
 damien/util
 damien/images
+damien/.ipynb_checkpoints
+
