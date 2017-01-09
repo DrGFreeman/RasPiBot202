@@ -101,7 +101,7 @@ try:
             print ("Gauche")
             r2.motionCtrl.turnAngle(math.radians(90), vVirage)
             if res[4] == 1 or resInt[1:4].count(1) >= 1:
-                listeV.append('G,)
+                listeV.append('G')
         # Detection d'une ligne en avant
         elif resInt[1:4].count(1) >= 1:
             #continue tout droit
@@ -148,6 +148,7 @@ try:
         elif vir == ['D', 'U', 'G']:
             vir = 'U'
         elif vir == ['L', 'U', 'L']:
+            vir = 'U'
         # Insertion du virage de remplacement
         listeV.insert(iu - 1, vir)
 
