@@ -226,27 +226,27 @@ try:
         print res
         print resInt
 
-        if len(listeV) > 0:
-            # Decision du virage
-            # Cas d'un virage a gauche
-            if res[0] == 1 and res[4] == 0 and resInt[1:4].count(1) == 0:
-                    # Tourne a gauche
-                    r2.motionCtrl.turnAngle(math.radians(90), vVirage)
-            # Cas d'un virage a droite
-            elif res[4] == 1 and res[0] == 0 and resInt[1:4].count(1) == 0:
-                    # Tourne a droite
-                    r2.motionCtrl.turnAngle(-math.radians(90), vVirage)
-            # Sinon on tourne selon la liste de virages
-            else:
-                vir = listeV.pop(0)
-                if vir == 'G':
-                    r2.motionCtrl.turnAngle(math.radians(90), vVirage)
-                elif vir == 'D':
-                    r2.motionCtrl.turnAngle(-math.radians(90), vVirage)
-
-            sleep(.1)
+        
+        # Decision du virage
+        # Cas d'un virage a gauche
+        if res[0] == 1 and res[4] == 0 and resInt[1:4].count(1) == 0:
+                # Tourne a gauche
+                r2.motionCtrl.turnAngle(math.radians(90), vVirage)
+        # Cas d'un virage a droite
+        elif res[4] == 1 and res[0] == 0 and resInt[1:4].count(1) == 0:
+                # Tourne a droite
+                r2.motionCtrl.turnAngle(-math.radians(90), vVirage)
+        # Sinon on tourne selon la liste de virages
+        elif len(listeV) > 0:
+            vir = listeV.pop(0)
+            if vir == 'G':
+                r2.motionCtrl.turnAngle(math.radians(90), vVirage)
+            elif vir == 'D':
+                r2.motionCtrl.turnAngle(-math.radians(90), vVirage)
         else:
             fin = True
+
+        sleep(.1)
         
     # Demi tour
     r2.motionCtrl.turnAngle(math.radians(180), vVirage)
