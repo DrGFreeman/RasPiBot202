@@ -124,14 +124,20 @@ void loop()
     slave.buffer.analog[i] = analogRead(i);
   }
   
-  // Read encoders
+  // Write encoder counts
+  cli();
   slave.buffer.encoderLCount = encoderLeftCount;
   slave.buffer.encoderRCount = encoderRightCount;
+  sei();
+
+  // Reset encoder counts
   if (slave.buffer.resetEncoders)
   {
     slave.buffer.resetEncoders = 0;
+    cli();
     encoderLeftCount = 0;
     encoderRightCount = 0;
+    sei();
   }
 
   // READING the buffer is allowed before or after finishWrites().
