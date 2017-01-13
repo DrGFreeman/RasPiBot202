@@ -4,11 +4,7 @@ from math import pi, cos, sin
 # Function boundAngle(angle) takes any angle as "angle" and returns the
 # equivalent angle bound within 0 <= angle < 2 * Pi
 def boundAngle(angle):
-    if angle < 0:
-        angle = angle + 2 * pi
-    if angle >= 2 * pi:
-        angle = angle % (2 * pi)
-    return angle
+    return angle % (2 * pi)
 
 # Function relativeAngle(angleRef, angle) returns the shortest relative
 # angle from a reference angle "angleRef" to an angle "angle". The retuned
@@ -29,11 +25,11 @@ def relativeAngle(angleRef, angle):
 
 class Odometer:
 
-    def __init__(self, encoders, timeStep = .05):
+    def __init__(self, encoders, timeStep = .02):
         self.encoders = encoders
         self.timeStep = timeStep
-        self.track = 141 # width between wheels in millimeters
-        self.tickDist = .32938 / 2 # Distance travelled for per encoder click in millimeters
+        self.track = 142.5 # width between wheels in millimeters
+        self.tickDist = .152505 # Distance travelled for per encoder click in millimeters
         self.lastCountLeft = 0
         self.lastCountRight = 0
         self.speedL = 0

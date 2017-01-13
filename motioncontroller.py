@@ -7,7 +7,7 @@ from pid import PID
 
 class MotionController:
 
-    def __init__(self, odometer, motors, timeStep = .05):
+    def __init__(self, odometer, motors, timeStep = .02):
         self.timeStep = timeStep
         self.odometer = odometer
         self.odometer.timeStep = self.timeStep
