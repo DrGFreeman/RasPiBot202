@@ -20,7 +20,7 @@ cam = Camera(size = 2)  # Objet Camera
 vitesse = 200.          # Vitesse de déplacement en mm/s
 vRot1 = 1.              # Vitesse de rotation rapide en radians/s
 vRot2 = .25             # Vitesse de rotation lente en radians/s
-vVirage = 2.            # Vitesse de virage en radians/s
+vVirage = 3.            # Vitesse de virage en radians/s
 compt = 0               # Compteur pour noms de fichiers photos
 fin = False             # Pour savoir si une boucle est terminée
 
@@ -156,11 +156,11 @@ try:
 
     # Inversion des virages
     for i in range(len(listeV)):
-	vir = listeV[i]
-	if vir == 'D':
-		listeV[i] = 'G'
-	elif vir == 'G':
-		listeV[i] = 'D'
+        vir = listeV[i]
+        if vir == 'D':
+            listeV[i] = 'G'
+        elif vir == 'G':
+            listeV[i] = 'D'
 
     # Inversion du parcours
     listeV.reverse()
