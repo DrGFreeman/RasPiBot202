@@ -24,7 +24,7 @@ fps = 20
 
 ##  Define obstacle avoidance parameters
 turnCorrRange = 400.
-turnCorrGain = 2.
+turnCorrGain = 4.
 
 try:
 
@@ -66,7 +66,7 @@ try:
 
         ##  Calculate omega correction
         alphaCorr = (readings * sensAlphas).sum() / readings.sum()        
-        omegaCorr = 2 * alphaCorr / readings.min() * speed
+        omegaCorr = alphaCorr / readings.min() * speed
         #print readings, degrees(alphaCorr), degrees(omegaCorr)
 
         ##  Apply turn rate correction
