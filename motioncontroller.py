@@ -106,13 +106,18 @@ class MotionController:
     # speed commands to the motors and updates the odometer at every pass
     # of the loop.
     def _run(self):
-        loopTimer = Timer()
-        while self.active:
-            speedL = self.targetV - self.targetOmega * self.odometer.track / 2.
-            speedR = self.targetV + self.targetOmega * self.odometer.track / 2.
-            self.motors.speed(speedL, speedR)
-            loopTimer.sleepToElapsed(self.timeStep)
-            self.odometer.update()
+        try:
+            loopTimer = Timer()
+            while self.active:
+                speedL = self.targetV - self.targetOmega * self.odometer.track / 2.
+                speedR = self.targetV + self.targetOmega * self.odometer.track / 2.
+                self.motors.speed(speedL, speedR)
+                loopTimer.sleepToElapsed(self.timeStep)
+                self.odometer.update()
+        except IOError:
+            print "IOError - Stopping"
+            self.stop()
+            self.kill()
 
     # Starts the ._run() method in a thread
     def run(self):
