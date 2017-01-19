@@ -24,6 +24,28 @@ class Camera():
         self.stop()
         self.picam.close()
 
+    def doWitheBalance(self, awbFilename='awb_gains.txt', mode='auto'):
+        ##  Set AWB mode for calibration
+        self.picam.awb_mode = mode
+        print 'Calibrating white balance gains...'
+        time.sleep(1)
+        ##  Read AWB gains
+        gains = self.picam.awb_gains
+        ##  Set AWB mode to off (manual)
+        self.picam.awb_mode = 'off'
+        ##  Set AWB gains to remain constant
+        self.picam.awb_gains = gains
+
+        ##  Write AWB gains to file
+        gRed = float(gains[0])
+        gBlue = float(gains[1])
+        f = open(awbFilename, 'w')
+        f.flush()
+        f.write(str(gRed) + ', ' + str(gBlue))
+        f.close()
+        print 'AWB gains set to:', gRed, gBlue
+        print 'AWB gains written to ' + awbFilename
+
     def getOpenCVImage(self):
         img = np.empty((self.vRes * self.hRes * 3), dtype=np.uint8)
         self.picam.capture(img, 'bgr', use_video_port=True)
@@ -38,6 +60,18 @@ class Camera():
         img = img.rotate90()
         img = img.flipVertical()
         return img
+
+    def readWhiteBalance(self, awbFilename='awb_gains.txt'):
+        ##  Read AWB gains from file
+        f = open(awbFilename, 'r')
+        line = f.readline()
+        f.close()
+        gRed, gBlue = [float(g) for g in line.split(', ')]
+        ##  Set AWB mode to off (manual)
+        self.picam.awb_mode = 'off'
+        ##  Set AWB gains to remain constant
+        self.picam.awb_gains = gRed, gBlue
+        print 'AWB gains set to:', gRed, gBlue
 
     def start(self):
         if not self.active:
