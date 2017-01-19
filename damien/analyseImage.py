@@ -4,12 +4,18 @@ import time
 
 def analyseImage(i):
 
-    # Decoupage de la bordure inferieure
+    # Découpage de la bordure inférieure
     i = i.crop((0,72), (128, 96))
 
     # Isolation du vert
-    i = i.hueDistance(color=(75, 133, 103), minsaturation=50)
-    i = i.binarize(70)
+
+    # Paramètres pour plancher
+    #i = i.hueDistance(color=(55, 159, 101), minsaturation=50)
+    #i = i.binarize(70)
+    
+    # Parametres pour carton rouge
+    i = i.hueDistance(color=(55, 159, 101), minsaturation=50)
+    i = i.binarize(160)
     
 
     # Découpage de l'image en cinq
