@@ -168,7 +168,8 @@ try:
 
     print("Parcours inverse: " + str(listeV))
 
-    sleep(3)
+    #sleep(3)
+    raw_input("Appuyez sur 'Enter' pour continuer")
 
     #====================
     # Parcours a l'envers
