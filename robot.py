@@ -49,4 +49,5 @@ class Robot:
     def kill(self):
         self.stop()
         self.motionCtrl.kill()
+        self.aStar.kill()
         
