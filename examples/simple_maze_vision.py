@@ -188,8 +188,6 @@ try:
         elif int1[4] == 1:
             print "Right turn"
             rpb202.motionCtrl.turnAngle(-math.pi/2, omegaTurn)
-            if int1[0] == 1 or int2[1:4].count(1) >= 1:
-                turns.append('R')
 
         ##  Finally, it must be a dead-end so turn around!
         else:

@@ -111,8 +111,6 @@ try:
             # Tourne a droite
             print("Droite")
             rpb202.motionCtrl.turnAngle(-math.radians(90), vVirage)
-            if res[0] == 1 or resInt[1:4].count(1) >= 1:
-                listeV.append('D')
         # Sinon c'est un cul-de-sac
         else:
             # Demi-tour
