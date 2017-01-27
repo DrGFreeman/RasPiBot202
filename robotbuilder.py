@@ -28,7 +28,7 @@ def build(camera = False):
     robot.addSensor(irARightOut)
 
     if camera:
-        import cv
-        robot.addCamera(cv.Camera())
+        from camera import Camera
+        robot.addCamera(Camera(2))
 
     return robot
