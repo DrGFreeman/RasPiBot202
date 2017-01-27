@@ -19,7 +19,7 @@ rpb202.panTilt.down()
 cam = Camera(size = 2)  # Objet Camera
 vitesse = 200.          # Vitesse de déplacement en mm/s
 vRot1 = 1.              # Vitesse de rotation rapide en radians/s
-vRot2 = .35             # Vitesse de rotation lente en radians/s
+vRot2 = .45             # Vitesse de rotation lente en radians/s
 vVirage = 3.            # Vitesse de virage en radians/s
 compt = 0               # Compteur pour noms de fichiers photos
 fin = False             # Pour savoir si une boucle est terminée
@@ -79,7 +79,7 @@ try:
         compt += 1
 
         # Avance au centre de l'intersection
-        rpb202.motionCtrl.forwardDist(vitesse, 105, stop=True, decel=True)
+        rpb202.motionCtrl.forwardDist(vitesse, 110, stop=True, decel=True)
 
         # Prend une image pour savoir si l'intersection continue
         # ou si c'est la fin
@@ -271,6 +271,17 @@ except KeyboardInterrupt:
 
 # Arrêt des processus en cours (robot et caméra)
 finally:
+    # Affichage du niveau de la batterie
+    from numpy import median
+    bat = []
+    for i in range(5):
+        bat.append(rpb202.aStar.read_battery_millivolts()[0])
+        sleep(.05)
+    bat = median(bat)
+    batterie = round(bat / 1000., 2)
+    batPct = int(round((batterie - 6.) / 1.9 * 100, 0))
+    print "Niveau de la batterie:",  batterie, "Volts (" + str(batPct) + "%)"
+
     rpb202.stop()
     rpb202.kill()
     cam.close()
