@@ -18,7 +18,7 @@ class Servo:
         self.pwmDev.off()
         self.currVal = 0
         self.targetVal = 0
-        self.tolerance = .01
+        self.tolerance = .005
         self.moveTime = .3 # time to move from value of 0 to 1
         self.moving = False
 
