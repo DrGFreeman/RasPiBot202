@@ -6,11 +6,16 @@ from pid import PID
 
 
 class MotionController:
+    """A class that controls the robot movements via different serial or in-loop
+    methods. It uses odometry information from the robot's odometer to set
+    target speeds for the motors. Distances/positions and speeds are in mm and
+    mm/s respectively and angles and turn rates are in radians and radians/s
+    respectively (pi radians = 180 degrees). Angles and turn rates are positive
+    in counterclockwise direction."""
 
     def __init__(self, odometer, motors, timeStep=.02):
         self.timeStep = timeStep
         self.odometer = odometer
-        self.odometer.timeStep = self.timeStep
         self.motors = motors
         self.omegaPID = PID()
         self.targetV = 0
@@ -23,10 +28,10 @@ class MotionController:
 ########################################################################
 
     def forwardDist(self, speed, distTarget, stop=True, decel=False):
-        """Moves the robot forward a fixed distance. The robot will stop once
-        the distance is reached unless stop is set to False. decel=True will
-        have the robot slow down before stopping. This method will execute until
-        the target distance is reached."""
+        """Moves the robot forward a fixed distance (in mm). The robot will stop
+        once the distance is reached unless stop is set to False. decel=True
+        will have the robot slow down before stopping. Serial: this method will
+        execute until the target distance is reached."""
         phi0 = self.odometer.getPhi()
         x0, y0 = self.odometer.getPosXY()
         speed0 = speed
@@ -50,35 +55,50 @@ class MotionController:
             if stop:
                 self.stop()
 
-    # In-loop; Need to call this method within a loop with a short time step
-    # in order for the PID to adjust the turn rate (targetOmega).
     def forwardAngle(self, speed, angleTarget):
+        """Moves forward at a specified angle. A PID will ajust the turn rate
+        omega to reach and maintain phi at angleTarget. In-loop: this method
+        must be call from within a loop with a short time step for the PID to
+        ajust the turn rate."""
         self.setMode('FORWARD')
-        omega = self.omegaPID.getOutput(0, -self.odometer.angleRelToPhi(angleTarget), self.timeStep)
+        omega = self.omegaPID.getOutput(0,-self.odometer.angleRelToPhi(angleTarget),
+                                        self.timeStep)
         self.setSpeed(speed, omega)
 
-    # Same as setSpeed method. Kept for backward compatibility
     def move(self, v, omega):
+        """Same as setSpeed method. Kept for backward compatibility."""
         self.setSpeed(v, omega)
 
-    # Sets the target forward & rotational speeds (v & omega)
     def setSpeed(self, v, omega):
+        """Sets the target forward and rotational speeds (v & omega). Forward
+        speed v is in mm/s and the turn rate omega is in radians/s
+        (180 degrees = pi radians)."""
         self.targetV = v
         self.targetOmega = omega
 
-    # Stops the movement
     def stop(self):
+        """Stops the movement."""
         self.targetV = 0
         self.targetOmega = 0
         self.motors.stop()
 
-    # Serial; Method will execute until the target turn angle is achieved
     def turnAngle(self, angleTarget, omega = pi):
+        """Turns a specified angle from current phi angle. angleTarget is in
+        radians (pi radians = 180 degrees). The turn rate omega is in radians/s
+        (default = pi = 180 deg/s). A positive angle corresponds to a
+        counterclockwise rotation. If angleTarget is larger than pi (180 deg),
+        the robot will take the shortest rotation direction to the target, i.e.
+        will turn in the opposite direction. Serial: this method will execute
+        until the target angle is reached."""
         phi0 = self.odometer.getPhi()
         self.turnToAngle(phi0 + angleTarget, omega)
 
-    # Serial; Method will execute until the target angle is reached
     def turnToAngle(self, angleTarget, omega = pi):
+        """Turns to a specified angle in the odometer absolute reference frame.
+        The target angle is in radians (pi radians = 180 degrees). The turn rate
+        omega is in radians/s (default = pi = 180 deg/s). The robot will take
+        the shortest rotation direction to the target. Serial: this method will
+        execute until the target angle is reached."""
         self.setMode('TURN')
         self.targetV = 0
         self.targetOmega = 0
@@ -102,14 +122,15 @@ class MotionController:
 ##  Other methods
 ########################################################################
 
-    # Kill thread running ._move() method
     def kill(self):
+        """Kills the thread running the _run method."""
+        self.stop()
         self.active = False
 
-    # This method runs continuously until self.active is set to false.
-    # It looks for targetV and targetOmega values, provides corresponding
-    # speed commands to the motors at every pass of the loop.
     def _run(self):
+        """This method runs continuously until self.active is set to false. It
+        looks for targetV and targetOmega values, provides corresponding speed
+        commands to the motors at every pass of the loop."""
         try:
             loopTimer = Timer()
             while self.active:
@@ -122,14 +143,14 @@ class MotionController:
             self.stop()
             self.kill()
 
-    # Starts the ._run() method in a thread
     def run(self):
+        """Starts the _run method in a thread."""
         self.active = True
         th = threading.Thread(target = self._run, args = [])
         th.start()
 
-    # Sets the omegaPID constants for specific movement modes
     def setMode(self, mode):
+        """Sets the omegaPID constants for specific movement modes."""
         if self.mode != mode:
             self.mode = mode
             self.omegaPID.reset()
@@ -138,7 +159,3 @@ class MotionController:
                 self.omegaPID.setKs(1, 0, 0)
             if mode == 'TURN':
                 self.omegaPID.setKs(1.5, 0, 0)
-
-    def setTimeStep(self, timeStep):
-        self.timeStep = timeStep
-        self.odometer.timeStep = timeStep
