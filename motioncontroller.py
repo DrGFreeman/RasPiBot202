@@ -7,7 +7,7 @@ from pid import PID
 
 class MotionController:
 
-    def __init__(self, odometer, motors, timeStep = .01):
+    def __init__(self, odometer, motors, timeStep=.02):
         self.timeStep = timeStep
         self.odometer = odometer
         self.odometer.timeStep = self.timeStep
@@ -17,34 +17,39 @@ class MotionController:
         self.targetOmega = 0
         self.mode = "STOPPED"
         self.run()
-        
+
 ########################################################################
 ##  Movement control methods
 ########################################################################
-        
-    # Serial; Method will execute until the target distance is reached
-    def forwardDist(self, speed, distTarget, stop = True, decel = False):
+
+    def forwardDist(self, speed, distTarget, stop=True, decel=False):
+        """Moves the robot forward a fixed distance. The robot will stop once
+        the distance is reached unless stop is set to False. decel=True will
+        have the robot slow down before stopping. This method will execute until
+        the target distance is reached."""
         phi0 = self.odometer.getPhi()
         x0, y0 = self.odometer.getPosXY()
+        speed0 = speed
         dist = 0
         loopTimer = Timer()
-        if decel:
-            while dist < distTarget - speed * 3 * self.timeStep:
+        if stop and decel:
+            while dist < distTarget - .35 * speed:
                 self.forwardAngle(speed, phi0)
                 loopTimer.sleepToElapsed(self.timeStep)
                 x1, y1 = self.odometer.getPosXY()
                 dist = sqrt((x1 - x0)**2 + (y1 - y0)**2)
-                if distTarget - dist < 50 and speed > 75:
-                    speed = speed / 1.3
+                if distTarget - dist < (.5 * speed0) and speed > 50:
+                    speed = speed / 1.05
+            self.stop()
         else:
             while dist < distTarget:
                 self.forwardAngle(speed, phi0)
                 loopTimer.sleepToElapsed(self.timeStep)
                 x1, y1 = self.odometer.getPosXY()
                 dist = sqrt((x1 - x0)**2 + (y1 - y0)**2)
-        if stop:
-            self.stop()
-        
+            if stop:
+                self.stop()
+
     # In-loop; Need to call this method within a loop with a short time step
     # in order for the PID to adjust the turn rate (targetOmega).
     def forwardAngle(self, speed, angleTarget):
@@ -55,7 +60,7 @@ class MotionController:
     # Same as setSpeed method. Kept for backward compatibility
     def move(self, v, omega):
         self.setSpeed(v, omega)
-        
+
     # Sets the target forward & rotational speeds (v & omega)
     def setSpeed(self, v, omega):
         self.targetV = v
@@ -103,17 +108,15 @@ class MotionController:
 
     # This method runs continuously until self.active is set to false.
     # It looks for targetV and targetOmega values, provides corresponding
-    # speed commands to the motors and updates the odometer at every pass
-    # of the loop.
+    # speed commands to the motors at every pass of the loop.
     def _run(self):
         try:
             loopTimer = Timer()
             while self.active:
                 speedL = self.targetV - self.targetOmega * self.odometer.track / 2.
                 speedR = self.targetV + self.targetOmega * self.odometer.track / 2.
-                self.motors.speed(speedL, speedR)
+                self.motors.speed(speedL, speedR, self.timeStep)
                 loopTimer.sleepToElapsed(self.timeStep)
-                self.odometer.update()
         except IOError:
             print "IOError - Stopping"
             self.stop()
@@ -125,7 +128,7 @@ class MotionController:
         th = threading.Thread(target = self._run, args = [])
         th.start()
 
-    # Sets the omegaPID constants for specific movement modes               
+    # Sets the omegaPID constants for specific movement modes
     def setMode(self, mode):
         if self.mode != mode:
             self.mode = mode

@@ -2,38 +2,40 @@ import smbus
 import struct
 import threading
 import time
+from timer import Timer
 
 class AStar(object):
 
-    def __init__(self):
+    def __init__(self, encoders, odometer):
         self._bus = smbus.SMBus(1)
-	self.buttonA = False
-	self.buttonB = False
-	self.buttonC = False
-	self.ledRed = False
-	self.ledYellow = False
-	self.ledGreen = False
-	self._notes = ''
-	self._motorLeft = 0
-	self._motorRight = 0
-	self.batteryMilliVolts = 0
-	self.analog = [0, 0, 0, 0, 0, 0]
-	self.encoders = 0, 0
-	self._encReset = True
-	self.run()
+    	self.buttonA = False
+    	self.buttonB = False
+    	self.buttonC = False
+    	self.ledRed = False
+    	self.ledYellow = False
+    	self.ledGreen = False
+    	self._notes = ''
+    	self._motorLeft = 0
+    	self._motorRight = 0
+    	self.batteryMilliVolts = 0
+    	self.analog = [0, 0, 0, 0, 0, 0]
+    	self._encReset = True
+        self.encoders = encoders
+        self.odometer = odometer
+    	self.run()
 
     def _read_unpack(self, address, size, format):
-	self._bus.write_byte(20,address)
-	time.sleep(.0001)
-	byte_list = []
-	for n in range(0,size):
-	  byte_list.append(self._bus.read_byte(20))
-	return struct.unpack(format,bytes(bytearray(byte_list)))
+    	self._bus.write_byte(20,address)
+    	time.sleep(.0001)
+    	byte_list = []
+    	for n in range(0,size):
+    	  byte_list.append(self._bus.read_byte(20))
+    	return struct.unpack(format,bytes(bytearray(byte_list)))
 
     def _write_pack(self, address, format, *data):
-	data_array = map(ord, list(struct.pack(format, *data)))
-	self._bus.write_i2c_block_data(20, address, data_array)
-	time.sleep(.0001)
+    	data_array = map(ord, list(struct.pack(format, *data)))
+    	self._bus.write_i2c_block_data(20, address, data_array)
+    	time.sleep(.0001)
 
     def kill(self):
         ##  Stop running thread
@@ -46,9 +48,8 @@ class AStar(object):
         self._write_pack(0, 'BBB', self.ledYellow, self.ledGreen, self.ledRed)
 
     def _run(self):
-        #tTotal, nTotal = 0, 0
+        ##  Runs continuously until self.active is set to False
         while self._active:
-            t0 = time.time()
             try:
                 ##  Read from buffer
 
@@ -59,10 +60,13 @@ class AStar(object):
                 ##  Analog
                 self.analog = self._read_unpack(12, 12, "HHHHHH")
                 ##  Encoders
-                self.encoders = self._read_unpack(25, 4, "hh")
-                
+                counts = self._read_unpack(25, 4, "hh")
+                self.encoders.setCounts(counts[0], counts[1])
+                ##  Update odometer with latest encoder counts
+                self.odometer.update(time.time())
+
                 ##  Write to buffer
-                
+
                 ##  Leds
                 self._write_pack(0, 'BBB', self.ledYellow, self.ledGreen, self.ledRed)
                 ##  Motors
@@ -81,9 +85,7 @@ class AStar(object):
                 print "IOError in AStar class"
                 self.kill()
 
-            #tTotal += time.time() - t0
-            #nTotal += 1
-            #self.frequency = 1. / (tTotal / nTotal)
+            time.sleep(.009)
 
     def run(self):
         self._active = True
@@ -110,15 +112,12 @@ class AStar(object):
     def read_analog(self):
         return self.analog
 
-    def read_encoders(self):
-        return self.encoders
-
     def reset_encoders(self):
         self.resetEncoders = True
 
     def test_read8(self):
-	self._read_unpack(0, 8, 'cccccccc')
+    	self._read_unpack(0, 8, 'cccccccc')
 
     def test_write8(self):
-	self._bus.write_i2c_block_data(20, 0, [0,0,0,0,0,0,0,0])
-	time.sleep(.0001)
+    	self._bus.write_i2c_block_data(20, 0, [0,0,0,0,0,0,0,0])
+    	time.sleep(.0001)

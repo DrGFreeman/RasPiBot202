@@ -15,12 +15,11 @@ class PID:
         self.prevProcVar = 0
         self.prevFiltProcVar = 0
         self.medianFilter = False
-        self.derivativeOnPV = False
 
-        
     def getOutput(self, setPoint, procVar, step = 1):
 
         step = float(step) # Avoid integer division in python 2.7...
+
 
         filtProcVar = np.median([self.prevProcVar, procVar])
 
@@ -28,28 +27,21 @@ class PID:
 
             self.error = setPoint - filtProcVar
             self.errorInt += (self.prevError + self.error) / 2. * step
-
-            if self.derivativeOnPV:
-                self.errorDer = (filtProcVar - self.prevFiltProcVar) / step
-            else:
-                self.errorDer = (self.error - self.prevError) / step          
+            self.errorDer = (self.error - self.prevError) / step
 
         else:
 
             self.error = setPoint - procVar
             self.errorInt += (self.prevError + self.error) / 2. * step
-
-            if self.derivativeOnPV:
-                self.errorDer = (ProcVar - self.prevProcVar) / step
-            else:
-                self.errorDer = (self.error - self.prevError) / step
+            self.errorDer = (self.error - self.prevError) / step
 
         self.prevError = self.error
         self.prevProcVar = procVar
         self.prevFiltProcVar = filtProcVar
 
-        return self.Kp * self.error + self.Ki * self.errorInt + self.Kd * self.errorDer
-        
+        return self.Kp * self.error + self.Ki * self.errorInt \
+               + self.Kd * self.errorDer
+
     def getError(self):
         return self.error
 
@@ -68,6 +60,3 @@ class PID:
 
     def setMedianFilter(self, value):
         self.medianFilter = value
-
-    def setDerivativeOnPV(self, value):
-        self.derivativeOnPV = value

@@ -8,10 +8,10 @@ from pantilt import PanTilt
 class Robot:
 
     def __init__(self):
-        self.aStar = AStar()
-        self.encoders = Encoders(self.aStar)
+        self.encoders = Encoders()
         self.odometer = Odometer(self.encoders)
-        self.motors = Motors(self.aStar, self.encoders, self.odometer)
+        self.aStar = AStar(self.encoders, self.odometer)
+        self.motors = Motors(self.aStar, self.odometer)
         self.motionCtrl = MotionController(self.odometer, self.motors)
         self.sensors = []
         self.buttons = []
@@ -41,7 +41,7 @@ class Robot:
         self.motors.turn(rotSpeed)
 
     def move(self, speed, rotSpeed):
-        self.motors.cmd(speed - rotSpeed, speed + rotSpeed) 
+        self.motors.cmd(speed - rotSpeed, speed + rotSpeed)
 
     def stop(self):
         self.motionCtrl.stop()
@@ -50,4 +50,3 @@ class Robot:
         self.stop()
         self.motionCtrl.kill()
         self.aStar.kill()
-        

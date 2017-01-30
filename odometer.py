@@ -1,15 +1,18 @@
 import time
 from math import pi, cos, sin
+import numpy as np
+from filters import Filter1D
 
-# Function boundAngle(angle) takes any angle as "angle" and returns the
-# equivalent angle bound within 0 <= angle < 2 * Pi
 def boundAngle(angle):
+    """Function boundAngle(angle) takes any angle as "angle" and returns the
+    equivalent angle bound within 0 <= angle < 2 * Pi."""
     return angle % (2 * pi)
 
-# Function relativeAngle(angleRef, angle) returns the shortest relative
-# angle from a reference angle "angleRef" to an angle "angle". The retuned
-# relative angle is bound within -Pi < angle < Pi
+
 def relativeAngle(angleRef, angle):
+    """Function relativeAngle(angleRef, angle) returns the shortest relative
+    angle from a reference angle "angleRef" to an angle "angle". The retuned
+    relative angle is bound within -Pi < angle < Pi."""
     angleRef = boundAngle(angleRef)
     angle = boundAngle(angle)
 
@@ -21,19 +24,22 @@ def relativeAngle(angleRef, angle):
         relativeAngle = angle - angleRef
 
     return relativeAngle
-    
+
 
 class Odometer:
 
-    def __init__(self, encoders, timeStep = .02):
+    def __init__(self, encoders):
         self.encoders = encoders
-        self.timeStep = timeStep
+        self.timeStep = .01
         self.track = 142.5 # width between wheels in millimeters
         self.tickDist = .152505 # Distance travelled for per encoder click in millimeters
         self.lastCountLeft = 0
         self.lastCountRight = 0
-        self.speedL = 0
-        self.speedR = 0
+        self.lastUTime = time.time()
+        self.speedL = Filter1D(5)
+        self.speedR = Filter1D(5)
+        self.speedL.addDataPoint(np.zeros(5))
+        self.speedR.addDataPoint(np.zeros(5))
         self.phi = 0
         self.x = 0
         self.y = 0
@@ -42,9 +48,9 @@ class Odometer:
         self.dist = 0
         self.active = False
 
-    def update(self):
+    def update(self, uTime):
 
-        countLeft, countRight = self.encoders.readCounts()
+        countLeft, countRight = self.encoders.getCounts()
 
         deltaCountLeft = countLeft - self.lastCountLeft
         deltaCountRight = countRight - self.lastCountRight
@@ -53,20 +59,23 @@ class Odometer:
         distRight = deltaCountRight * self.tickDist
         distCenter = (distLeft + distRight) / 2.
         self.dist += distCenter
-        
+
         self.x += distCenter * cos(self.phi)
         self.y += distCenter * sin(self.phi)
 
         deltaPhi = (distRight - distLeft) / self.track
         self.phi = boundAngle(self.phi + deltaPhi)
-       
-        self.speedL = distLeft / self.timeStep
-        self.speedR = distRight / self.timeStep
+
+        self.timeStep = uTime - self.lastUTime
+
+        self.speedL.addDataPoint(distLeft / self.timeStep)
+        self.speedR.addDataPoint(distRight / self.timeStep)
         self.v = distCenter / self.timeStep
         self.omega = deltaPhi / self.timeStep
 
         self.lastCountLeft = countLeft
         self.lastCountRight = countRight
+        self.lastUTime = uTime
 
     def getPosXY(self):
         return self.x, self.y
@@ -87,7 +96,7 @@ class Odometer:
         return self.v
 
     def getSpeedLR(self):
-        return self.speedL, self.speedR
+        return self.speedL.getMedian(), self.speedR.getMedian()
 
     def resetDist(self):
         self.dist = 0

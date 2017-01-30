@@ -1,37 +1,35 @@
 from pid import PID
-from encoders import Encoders
 
 class Motors:
 
-    def __init__(self, aStar, encoders, odometer):
+    def __init__(self, aStar, odometer):
         self.aStar = aStar
         self.odometer = odometer
-        self.encoders = encoders
         self.trimL = 1
-        self.trimR = .9
+        self.trimR = .78
         self.dirL = 1 * self.trimL
         self.dirR = 1 * self.trimR
         self.maxCmd = 400
-        self.pidL = PID(.7, 5)#PID(.25, 4)#PID(.7, 6)
-        self.pidR = PID(.7, 5)#PID(.25, 4)#PID(.7, 5.5)
-        self.speedCst = 900. # Approximate speed (in mm/s) for unit command
+        self.pidL = PID(.5, 6)
+        self.pidR = PID(.5, 6)
+        self.speedCst = 800. # Approximate speed (in mm/s) for unit command
 
-        
-    # In-loop; This method is designed to be called within a loop with a short time step
-    # Odometer.update() needs to be called in the loop to read the encoders counts. To
-    # use this method independent from the odometer, change self.encoder.getCounts()
-    # for self.encoders.readCounts() on the first line of the method.
-    # speedTarget arguments are in mm/s.
-    def speed(self, speedTargetL, speedTargetR):
+    def speed(self, targetSpeedL, targetSpeedR, timeStep):
+        """Sets the motors commands to achieve the target speeds using a PID
+        controller for each motor. This method is called in a loop from the
+        robot.motionCtrl._run() method with a short time step for the PID
+        controllers to update their error terms."""
 
+        ##  Get wheels speed from odometer
         speedL, speedR = self.odometer.getSpeedLR()
 
-        cmdL = self.pidL.getOutput(
-                    speedTargetL, speedL, self.odometer.timeStep) / self.speedCst
-        cmdR = self.pidR.getOutput(
-                    speedTargetR, speedR, self.odometer.timeStep) / self.speedCst
+        ##  Get commands from PID controllers
+        cmdL = self.pidL.getOutput(targetSpeedL, speedL, timeStep) \
+                    / self.speedCst
+        cmdR = self.pidR.getOutput(targetSpeedR, speedR, timeStep) \
+                    / self.speedCst
 
-        # Limit motor command
+        ##  Limit motor commands to unit value
         if cmdL < -1:
             cmdL = -1
         elif cmdL > 1:
@@ -41,42 +39,20 @@ class Motors:
         elif cmdR > 1:
             cmdR = 1
 
-        # Ensure faster stop
-        if speedTargetL == 0 and speedTargetR == 0:
+        ##  Ensure fast stop
+        if targetSpeedL == 0 and targetSpeedR == 0:
             cmdL, cmdR = 0, 0
-        
-        self.aStar.motors(cmdL * self.dirL * self.maxCmd, cmdR * self.dirR * self.maxCmd)
 
-
-    # In-loop; This method is to be called from within a loop.
-    # cmd arguments are the motor speed commands ranging from -1 to 1 (-max to max speed)
-    def cmd(self, cmdL, cmdR):
-        # Limit motor command
-        if cmdL < -1:
-            cmdL = -1
-        elif cmdL > 1:
-            cmdL = 1
-        if cmdR < -1:
-            cmdR = -1
-        elif cmdR > 1:
-            cmdR = 1
-
-        # Command motors
-        self.aStar.motors(cmdL * self.dirL * self.maxCmd, cmdR * self.dirR * self.maxCmd)
-
-    def forward(self, cmd):
-        self.aStar.motors(cmd * self.dirL * self.maxCmd, cmd * self.dirR * self.maxCmd)
-
-        
-    def turn(self, rotCmd):
-        self.aStar.motors(-rotCmd * self.dirL * self.maxCmd, rotCmd * self.dirR * self.maxCmd)
+        ##  Set motor commands
+        self.aStar.motors(cmdL * self.dirL * self.maxCmd,
+                          cmdR * self.dirR * self.maxCmd)
 
     def reset(self):
+        """Resets the PID controllers."""
         self.pidL.reset()
         self.pidR.reset()
 
     def stop(self):
+        """Stops the motors and resets the PID controllers."""
         self.aStar.motors(0, 0)
         self.reset()
-        
-        
