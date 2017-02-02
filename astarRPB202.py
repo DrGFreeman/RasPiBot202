@@ -8,9 +8,9 @@ class AStar(object):
 
     def __init__(self, encoders, odometer):
         self._bus = smbus.SMBus(1)
-    	self.buttonA = False
-    	self.buttonB = False
-    	self.buttonC = False
+    	self.btnA = False
+    	self.btnB = False
+    	self.btnC = False
     	self.ledRed = False
     	self.ledYellow = False
     	self.ledGreen = False
@@ -22,6 +22,9 @@ class AStar(object):
     	self._encReset = True
         self.encoders = encoders
         self.odometer = odometer
+        self.pan = 6000
+        self.tilt = 6000
+        self.mast = 6000
     	self.run()
 
     def _read_unpack(self, address, size, format):
@@ -54,7 +57,7 @@ class AStar(object):
                 ##  Read from buffer
 
                 ##  Buttons
-                self.buttonA, self.buttonB, self.buttonC = self._read_unpack(3, 3, "???")
+                self.btnA, self.btnB, self.btnC = self._read_unpack(3, 3, "???")
                 ##  Battery
                 self.batteryMilliVolts = self._read_unpack(10, 2, "H")[0]
                 ##  Analog
@@ -68,7 +71,8 @@ class AStar(object):
                 ##  Write to buffer
 
                 ##  Leds
-                self._write_pack(0, 'BBB', self.ledYellow, self.ledGreen, self.ledRed)
+                self._write_pack(0, 'BBB', self.ledYellow, self.ledGreen,
+                                 self.ledRed)
                 ##  Motors
                 self._write_pack(6, 'hh', self._motorLeft, self._motorRight)
                 if self._encReset:
@@ -79,10 +83,12 @@ class AStar(object):
                     ##  Play notes
                     self._write_pack(29, 'B15s', 1, self._notes.encode("ascii"))
                     self._notes = ''
+                ##  Servos
+                self._write_pack(44, 'HHH', self.pan, self.tilt, self.mast)
 
             ##  Handle I2C communication error
             except IOError:
-                print "IOError in AStar class"
+                raise IOError("IOError in AStar class")
                 self.kill()
 
             time.sleep(.009)
@@ -104,7 +110,7 @@ class AStar(object):
         self._motorLeft, self._motorRight = left, right
 
     def read_buttons(self):
-        return self.buttonA, self.buttonB, self.buttonC
+        return self.btnA, self.btnB, self.btnC
 
     def read_battery_millivolts(self):
         return self.batteryMilliVolts
