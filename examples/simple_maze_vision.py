@@ -106,7 +106,8 @@ def followLineToIntersection():
     int1 = analyseImage(img)
 
     ##  Move to center of intersection
-    rpb202.motionCtrl.forwardDist(speed, 103, stop=True, decel=True)
+    #rpb202.motionCtrl.forwardDist(speed, 103, stop=True, decel=True)
+    rpb202.motionCtrl.forwardDist(speed, 83, stop=True, decel=True)
 
     ##  Get second intersection image and analyse it
     ##  This image determines if there is a path forward
@@ -141,7 +142,7 @@ omegaLow = .35
 omegaHigh = 1.
 
 ##  Define forward speed for line following (in mm/s)
-speed = 240.
+speed = 210.
 
 ##  Define turn rate for maze turns (in rad/s)
 omegaTurn = math.pi
@@ -191,6 +192,7 @@ try:
 
         ##  Finally, it must be a dead-end so turn around!
         else:
+            print "U-turn"
             rpb202.motionCtrl.turnAngle(math.pi, omegaTurn)
             turns.append('U')
 
@@ -298,3 +300,13 @@ finally:
     rpb202.stop()
     rpb202.kill()
     cam.close()
+
+## Display battery level
+    from numpy import median
+    bat = []
+    for i in range(5):
+        bat.append(rpb202.aStar.read_battery_millivolts()[0])
+        sleep(.05)
+    bat = median(bat)
+    bat = round(bat / 1000., 2)
+    print "Battery level:",  bat, "V"

@@ -129,7 +129,7 @@ class MotionController:
     def setMode(self, mode):
         if self.mode != mode:
             self.mode = mode
-            self.omegaPID.reset()
+            #self.omegaPID.reset()
             # Set PID constants for specific mode
             if mode == 'FORWARD':
                 self.omegaPID.setKs(1, 0, 0)
